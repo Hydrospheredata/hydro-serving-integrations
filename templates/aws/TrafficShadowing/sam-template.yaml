@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  TrafficShadowing
+
+  Sample SAM Template for TrafficShadowing
+
+Parameters:
+  S3DataCaptureBucketName:
+    Type: String
+  S3DataCapturePrefix:
+    Type: String
+  S3DataTrainingBucketName:
+    Type: String
+  S3DataTrainingPrefix:
+    Type: String
+  HydrosphereEndpoint:
+    Type: String
+
+Resources:
+  TrafficShadowing:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: TrafficShadowing
+      Description: |
+        Stateless function, triggered by s3:ObjectCreated:* events.
+        Registers external models in Hydrosphere, uploads training 
+        data, submits production data for analysis.
+      CodeUri: .
+      Runtime: python3.7
+      Timeout: 240
+      MemorySize: 256
+      Handler: src.lambda.lambda_handler
+      Environment:
+        Variables:
+          S3_DATA_CAPTURE_BUCKET: 
+            Ref: S3DataCaptureBucketName
+          S3_DATA_CAPTURE_PREFIX: 
+            Ref: S3DataCapturePrefix
+          S3_DATA_TRAINING_BUCKET: 
+            Ref: S3DataTrainingBucketName
+          S3_DATA_TRAINING_PREFIX: 
+            Ref: S3DataTrainingPrefix
+          HYDROSPHERE_ENDPOINT: 
+            Ref: HydrosphereEndpoint

@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  SAM template to deploy resources for shadowing traffic from 
+  SageMaker Model Endpoint to Hydrosphere instance.
+Parameters:
+  S3DataCaptureBucketName:
+    Type: String
+  S3DataCapturePrefix:
+    Type: String
+  S3DataTrainingBucketName:
+    Type: String
+  S3DataTrainingPrefix:
+    Type: String
+  HydrosphereEndpoint:
+    Type: String
+Resources:
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !GetAtt TrafficShadowingFunction.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Sub 'arn:aws:s3:::${S3DataCaptureBucketName}'
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: '/'
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+            - s3:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*
+  TrafficShadowingFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: |
+        Stateless function, triggered by s3:ObjectCreated:* events.
+        Registers external models, uploads training data, submits
+        production data for analysis.
+      Code:
+        S3Bucket: REPLACE::Bucket
+        S3Key: REPLACE::Key
+      Timeout: 240
+      MemorySize: 256
+      Runtime: python3.7
+      Handler: src.lambda.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          S3_DATA_CAPTURE_BUCKET: !Ref S3DataCaptureBucketName
+          S3_DATA_CAPTURE_PREFIX: !Ref S3DataCapturePrefix
+          S3_DATA_TRAINING_BUCKET: !Ref S3DataTrainingBucketName
+          S3_DATA_TRAINING_PREFIX: !Ref S3DataTrainingPrefix
+          HYDROSPHERE_ENDPOINT: !Ref HydrosphereEndpoint
+      ReservedConcurrentExecutions: 3
+      # DeadLetterConfig: Might be configured
+  TrafficShadowingVersion:
+    Type: AWS::Lambda::Version
+    Properties: 
+      FunctionName: !Ref TrafficShadowingFunction

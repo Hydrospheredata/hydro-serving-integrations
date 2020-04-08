@@ -1,0 +1,4 @@
+grpcio==1.27.2
+requests==2.22.0
+pandas==0.25.0
+hydro-serving-grpc==2.1.0
