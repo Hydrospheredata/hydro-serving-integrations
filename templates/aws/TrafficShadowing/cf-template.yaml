@@ -1,7 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
+
 Description: >
   SAM template to deploy resources for shadowing traffic from 
   SageMaker Model Endpoint to Hydrosphere instance.
+
 Parameters:
   S3DataCaptureBucketName:
     Type: String
@@ -13,6 +15,7 @@ Parameters:
     Type: String
   HydrosphereEndpoint:
     Type: String
+
 Resources:
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
@@ -76,3 +79,7 @@ Resources:
     Type: AWS::Lambda::Version
     Properties: 
       FunctionName: !Ref TrafficShadowingFunction
+
+Outputs:
+  TrafficShadowingFunctionArn:
+    Value: !GetAtt TrafficShadowingFunction.Arn

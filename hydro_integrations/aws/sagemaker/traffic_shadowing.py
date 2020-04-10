@@ -3,10 +3,14 @@ import hashlib
 import logging
 import urllib.parse
 import boto3
+import botocore
 from sagemaker.model_monitor.data_capture_config import DataCaptureConfig
 from hydro_integrations.aws.sagemaker import utils
-from hydro_integrations.aws.sagemaker import exceptions
-from hydro_integrations.aws.sagemaker import cloudformation
+from hydro_integrations.aws.sagemaker.exceptions import (
+    FunctionNotFound, DataCaptureConfigException
+)
+from hydro_integrations.aws.cloudformation import CloudFormation
+from hydro_integrations.aws.helpers import SessionMixin, ClientFactory
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +39,13 @@ def get_template_version() -> str:
     with open("template_version.txt", "r") as file:
         return file.read()
 
+
 def get_region_bucket(region: str) -> str:
+    """Return predefined regional buckets for CF resources."""
     return "hydrosphere-integrations-{}".format(region)
 
 
-class TrafficShadowing(cloudformation.CloudFormation):
+class TrafficShadowing(CloudFormation, SessionMixin):
     """ Serverless application to shadow traffic to Hydrosphere. """
     STACK_NAME = "traffic-shadowing-hydrosphere"
     TEMPLATE_URI = "https://{}.s3.{}.amazonaws.com/cloudformation/TrafficShadowing/{}.yaml"
@@ -49,20 +55,19 @@ class TrafficShadowing(cloudformation.CloudFormation):
             hydrosphere_endpoint: str,
             s3_data_training_uri: str,
             data_capture_config: DataCaptureConfig,
-            session: Union[boto3.Session, None] = None,
+            session: Union[boto3.Session, botocore.session.Session, None] = None,
     ):
+        self._session = session or boto3.Session()
+        self._s3_client = ClientFactory.get_client('s3', self._session)
+
         self.data_capture_enabled = data_capture_config.enable_capture
         if any(set(["REQUEST", "RESPONSE"]) - set(data_capture_config.capture_options)):
-            raise exceptions.DataCaptureConfigException(
+            raise DataCaptureConfigException(
                 "Data capturing should be configured to capture requests and responses.")
 
-        self._session = session if session is not None else boto3.Session()
-        self._s3_client = self._session.client('s3')
-        self._lambda_client = self._session.client('lambda')
-
         self.template_url = self.TEMPLATE_URI.format(
-            get_region_bucket(self._session.region_name),
-            self._session.region_name,
+            get_region_bucket(self.get_region()),
+            self.get_region(),
             get_template_version()
         )
 
@@ -80,7 +85,7 @@ class TrafficShadowing(cloudformation.CloudFormation):
         self.s3_data_training_prefix = training_parse.path.strip('/')
         self._validate_deployment_configuration()
 
-        generated_stack_name = append_hash(
+        self.stack_name = append_hash(
             target=self.STACK_NAME,
             to_hash=[
                 self.template_url,
@@ -92,7 +97,7 @@ class TrafficShadowing(cloudformation.CloudFormation):
 
         super().__init__(
             self.template_url,
-            generated_stack_name,
+            self.stack_name,
             self.get_stack_parameters(),
             self.get_stack_capabilities(),
             self._session,
@@ -102,8 +107,8 @@ class TrafficShadowing(cloudformation.CloudFormation):
         response = self._s3_client.get_bucket_location(
             Bucket=self.s3_data_capture_bucket
         )
-        assert self._session.region_name == response['LocationConstraint'], \
-            f'Session region {self._session.region_name} does not match with the data capture ' \
+        assert self.get_region() == response['LocationConstraint'], \
+            f'Session region {self.get_region()} does not match with the data capture ' \
             f'bucket {self.s3_data_capture_bucket}'
 
     def get_stack_parameters(self) -> List[Dict[str, str]]:
@@ -134,30 +139,17 @@ class TrafficShadowing(cloudformation.CloudFormation):
     def get_stack_capabilities(self) -> List[str]:
         return ["CAPABILITY_NAMED_IAM"]
 
-    def _get_lambda_arn(self):
+    def _get_lambda_arn(self) -> dict:
         """Retrieve Arn of the deployed TrafficShadowingFunction Lambda."""
-        def is_candidate(item: dict) -> bool:
-            if item['ResourceType'] == 'AWS::Lambda::Function' \
-                    and item['ResourceStatus'] != 'DELETE_COMPLETE':
-                if 'TrafficShadowingFunction' in item['PhysicalResourceId']:
-                    return True
-            return False
-
-        response = self._describe_stack_resources()
-        if response is not None:
-            for candidate in filter(is_candidate, response.get('StackResources', [])):
-                # get the first match
-                return self._lambda_client.get_function(
-                    FunctionName=candidate['PhysicalResourceId']
-                )['Configuration']['FunctionArn']
-        raise exceptions.FunctionNotFound()
+        return next(filter(
+            lambda x: x['OutputKey'] == 'TrafficShadowingFunctionArn', self.stack_outputs
+        ))['OutputValue']
 
     def _get_bucket_notification_configuration(self):
         """Retrieve current notification configuration of the bucket."""
         result = self._s3_client.get_bucket_notification_configuration(
             Bucket=self.s3_data_capture_bucket
         )
-        del result['ResponseMetadata']
         return result
 
     def _add_bucket_notification(self, replace: bool = False):
@@ -218,7 +210,7 @@ class TrafficShadowing(cloudformation.CloudFormation):
 
         try:
             lambda_arn = self._get_lambda_arn()
-        except exceptions.FunctionNotFound:
+        except FunctionNotFound:
             logger.warning("Could not find deployed function arn.")
             if not purge:
                 logger.warning("Skipping bucket notification deletion.")

@@ -3,7 +3,10 @@ import logging
 import pprint
 import boto3
 import botocore
-from hydro_integrations.aws.sagemaker import exceptions
+from hydro_integrations.aws.helpers import SessionMixin, ClientFactory
+from hydro_integrations.aws.exceptions import (
+    StackCanNotBeProcessed, StackIsBeingProcessed, StackNotFound
+)
 
 logger = logging.getLogger(__name__)
 
@@ -12,13 +15,13 @@ RESOURCES_EXIST_NORMAL = ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'IMPORT_COMPLETE
 STACK_CREATION_FAILED = ['CREATE_FAILED', 'ROLLBACK_COMPLETE',]
 IN_PROGRESS_STATES = [
     'CREATE_IN_PROGRESS', 'ROLLBACK_IN_PROGRESS', 'DELETE_IN_PROGRESS', 'UPDATE_IN_PROGRESS',
-    'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_ROLLBACK_IN_PROGRESS', 
+    'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_ROLLBACK_IN_PROGRESS',
     'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS', 'REVIEW_IN_PROGRESS', 'IMPORT_IN_PROGRESS',
     'IMPORT_ROLLBACK_IN_PROGRESS',
 ]
 
 
-class CloudFormation:
+class CloudFormation(SessionMixin):
     """Base object for interacting with CloudFormation API."""
     def __init__(
             self,
@@ -32,11 +35,14 @@ class CloudFormation:
         self.stack_name = stack_name
         self.stack_parameters = stack_parameters
         self.stack_capabilities = stack_capabilities
-        self._cf_client = session.client('cloudformation')
+        self._session = session or boto3.Session()
+        self._cf_client = ClientFactory.get_client('cloudformation', self._session)
+
+        self.__stack_outputs = None
 
     def _wait(self, name):
         waiter = self._cf_client.get_waiter(name)
-        try: 
+        try:
             waiter.wait(
                 StackName=self.stack_name,
             )
@@ -49,7 +55,7 @@ class CloudFormation:
                 logging.error(pprint.pformat(events))
             else:
                 logger.error("Could not find stack events.")
-            raise exceptions.StackCanNotBeProcessed from error
+            raise StackCanNotBeProcessed from error
 
     def _create_stack(self):
         """Synchronously create a CloudFormation stack."""
@@ -85,10 +91,10 @@ class CloudFormation:
             )['Stacks'][0]
         except botocore.exceptions.ClientError:
             logger.debug("Could not find a stack with name: %s.", self.stack_name)
-    
+
     def _describe_stack_resources(self) -> Union[dict, None]:
         """Get stack resources."""
-        try: 
+        try:
             return self._cf_client.describe_stack_resources(
                 StackName=self.stack_name,
             )
@@ -132,13 +138,13 @@ class CloudFormation:
             logger.error("Current stack is failed to be created. Please, resolve the issue "
                          "and delete the stack first.")
             events = self._describe_stack_events_short()
-            if events is not None: 
+            if events is not None:
                 events.reverse()
                 logger.error(pprint.pformat(events))
-            raise exceptions.StackCanNotBeProcessed()
+            raise StackCanNotBeProcessed()
         elif state in IN_PROGRESS_STATES:
             logger.warning("Stack is currently being processed. Please, wait until stack finishes")
-            raise exceptions.StackIsBeingProcessed()
+            raise StackIsBeingProcessed()
         else:
             raise Exception("Reached unexpected state.")
 
@@ -149,3 +155,12 @@ class CloudFormation:
             StackName=self.stack_name,
         )
         self._wait('stack_delete_complete')
+
+    @property
+    def stack_outputs(self) -> List[dict]:
+        if self.__stack_outputs is None:
+            stack = self._describe_stack()
+            if stack is None:
+                raise StackNotFound("Could not retrieve outputs of a nonexisting stack.")
+            self.__stack_outputs = stack['Outputs']
+        return self.__stack_outputs
