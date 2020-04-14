@@ -5,16 +5,15 @@ import os
 import logging
 import urllib.parse
 from io import StringIO
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Union
 import boto3
+import botocore
 import pandas as pd
-import numpy as np
 import hydro_serving_grpc as hs
 from src import errors
-from src.data import Column
+from src.clients import ClientFactory
 
 logger = logging.getLogger('main')
-s3_client = boto3.client('s3')
 
 
 DTYPE_CONVERSIONS = {
@@ -103,10 +102,29 @@ VALUE_CONVERSIONS = {
     "DT_COMPLEX128":    "dcomplex_val",
 }
 
+
+class S3Utils:
+    """Helper class for working with s3 related objects."""
+    def __init__(self, session: Union[boto3.Session, botocore.session.Session, None] = None):
+        self._session = session or boto3.Session()
+        self._s3_client = ClientFactory.get_client('s3', self._session)
+
+    def get_largest_csv(self, bucket: str, prefix: str, model_name: str) -> str:
+        """Parse largest csv file from bucket/prefix."""
+        path = '/'.join([prefix, model_name])
+        response = self._s3_client.list_objects_v2(Bucket=bucket, Prefix=path)
+        candidates = list(filter(
+            lambda x: os.path.splitext(x['Key'])[1].lower() == '.csv',
+            response.get('Contents')
+        ))
+        if not candidates:
+            raise errors.DataNotFound(f'Didn\'t find .csv training data under "{path}" path')
+        candidates.sort(key=lambda x: x['Size'], reverse=True)
+        return f"s3://{bucket}/{candidates[0]['Key']}"
+
+
 def parse_s3_uri(uri: str) -> Tuple[str, str]:
-    """
-    Parse S3 URI to bucket, key tuple.
-    """
+    """Parse S3 URI to bucket, key tuple."""
     parse = urllib.parse.urlparse(uri)
     bucket = parse.netloc
     key = parse.path.strip('/')
@@ -114,9 +132,7 @@ def parse_s3_uri(uri: str) -> Tuple[str, str]:
 
 
 def parse_model_name(capture_prefix: str, record_key: str) -> str:
-    """
-    Parses the name of the Sagemaker model from the S3 path.
-    """
+    """Parse the name of the Sagemaker model from the S3 path."""
     logger.debug("Parsing a SageMaker model name from %s", record_key)
     env_parts_num = len(capture_prefix.split('/'))
     model_name = record_key.split('/')[env_parts_num]
@@ -124,40 +140,11 @@ def parse_model_name(capture_prefix: str, record_key: str) -> str:
     return model_name
 
 
-def parse_training_path(training_bucket: str, training_prefix: str, model_name: str) -> str:
-    """
-    Parses training path from the specified training prefix.
-    """
-    training_path = '/'.join([training_prefix, model_name])
-    response = s3_client.list_objects_v2(Bucket=training_bucket, Prefix=training_path)
-    contents = response.get('Contents')
-    candidates = list(filter(lambda x: os.path.splitext(x['Key'])[1].lower() == '.csv', contents))
-    if not candidates:
-        raise errors.DataNotFound(f'Didn\'t find .csv training data under "{training_path}" path')
-    candidates.sort(key=lambda x: x['Size'], reverse=True)
-    return f"s3://{training_bucket}/{candidates[0]['Key']}"
-
-
 def transform_model_name(name: str) -> str:
     """
-    Transforms original SageMaker model name into a valid Docker container name.
+    Transform original SageMaker model name into a valid Docker container
+    name.
     """
     new_name = name.lower()
     logger.debug("Transforming model name: %s -> %s", name, new_name)
     return new_name
-
-
-def build_tensor_kwargs(column: Column) -> Dict:
-    """
-    Build keyword arguments for tensor constraction.
-    """
-    kwargs = {"dtype": column.description.htype}
-    value_field = VALUE_CONVERSIONS.get(column.description.htype)
-    value = pd.read_csv(StringIO(column.data), header=None)
-    value = value.iloc[0].astype(column.description.dtype)
-    kwargs[value_field] = value.values
-    kwargs["tensor_shape"] = hs.TensorShapeProto(dim=[
-        hs.TensorShapeProto.Dim(size=shape)
-        for shape in column.description.shape
-    ])
-    return kwargs

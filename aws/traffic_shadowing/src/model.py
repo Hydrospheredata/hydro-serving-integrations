@@ -1,7 +1,4 @@
-"""
-This module interacts with Hydrosphere API.
-"""
-
+"""This module provides interface for interacting with Hydrosphere."""
 import logging
 import os
 import urllib.parse
@@ -11,8 +8,6 @@ import hydro_serving_grpc as hs
 from hydro_serving_grpc.monitoring.api_pb2_grpc import MonitoringServiceStub
 from hydro_serving_grpc.monitoring.metadata_pb2 import ExecutionMetadata
 from hydro_serving_grpc.monitoring.api_pb2 import ExecutionInformation
-
-import src.utils as utils
 from src.data import Request
 
 logger = logging.getLogger('main')
@@ -35,10 +30,8 @@ def make_grpc_channel(
 
 class Model:
     """
-    Represents a model registered in Hydrosphere
-    and available operations on it.
+    Represents a model registered in Hydrosphere and available operations on it.
     """
-
     def __init__(self, name: str, version: int, model_version_id: int) -> 'Model':
         self.name = name
         self.version = version
@@ -73,10 +66,7 @@ class Model:
                 name=self.name,
                 signature_name=self.signature_name,
             ),
-            inputs={
-                column.description.name: hs.TensorProto(**utils.build_tensor_kwargs(column))
-                for column in request.inputs
-            },
+            inputs=request.build_input_tensors(),
         )
 
     def _create_predict_response_proto(self, request: Request) -> hs.PredictResponse:
@@ -84,10 +74,9 @@ class Model:
         Create a PredictResponse message. PredictResponse is used to define the
         outputs of the model inference.
         """
-        return hs.PredictResponse(outputs={
-            column.description.name: hs.TensorProto(**utils.build_tensor_kwargs(column))
-            for column in request.outputs
-        })
+        return hs.PredictResponse(
+            outputs=request.build_output_tensors(),
+        )
 
     def _create_execution_information_proto(
             self,
@@ -106,12 +95,15 @@ class Model:
             metadata=metadata,
         )
 
+    def compose_execution_information_proto(self, request: Request) -> ExecutionInformation:
+        """Compose an ExecutionInformation message from a Request."""
+        return self._create_execution_information_proto(
+            self._create_predict_request_proto(request),
+            self._create_predict_response_proto(request),
+            self._create_execution_metadata_proto(request),
+        )
+
     def analyse(self, request: Request) -> None:
-        """ Use RPC method Analyse of the MonitoringService to calculate metrics. """
+        """Use RPC method Analyse of the MonitoringService to calculate metrics."""
         logger.debug("Analysing request: %s", request)
-        request_proto = self._create_predict_request_proto(request)
-        response_proto = self._create_predict_response_proto(request)
-        metadata_proto = self._create_execution_metadata_proto(request)
-        information_proto = self._create_execution_information_proto(
-            request_proto, response_proto, metadata_proto)
-        self.stub.Analyze(information_proto)
+        self.stub.Analyze(self.compose_execution_information_proto(request))
