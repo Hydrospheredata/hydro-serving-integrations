@@ -4,7 +4,7 @@ import botocore
 from botocore.stub import Stubber
 from sagemaker.model_monitor.data_capture_config import DataCaptureConfig
 from hydro_integrations.aws.sagemaker import TrafficShadowing
-from hydro_integrations.aws.helpers import ClientFactory
+from hydro_integrations.aws.helpers import AWSClientFactory
 from tests.traffic_shadowing.stubs import (
     CreateStackStub, DescribeStacksStub, DeleteStackStub,
     GetEmptyNotificationStub, GetOneNotificationStub, PutNotificationStub, 
@@ -12,8 +12,8 @@ from tests.traffic_shadowing.stubs import (
 )
 
 session = botocore.session.get_session()
-s3_client = ClientFactory.get_client('s3', session)
-cloudformation_client = ClientFactory.get_client('cloudformation', session)
+s3_client = AWSClientFactory.get_client('s3', session)
+cloudformation_client = AWSClientFactory.get_client('cloudformation', session)
 
 
 @pytest.fixture

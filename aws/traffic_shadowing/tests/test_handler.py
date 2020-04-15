@@ -1,10 +1,31 @@
 import os
+import logging
+from typing import Union
+
+import grpc
+import requests_mock
 import pytest
 import botocore
-from src.utils import ClientFactory
+from botocore.stub import Stubber
+
+from src import utils
+from src.clients import AWSClientFactory, RPCStubFactory
+from src.handler import lambda_handler
+from tests.stubs.http.aws import ListObjectsV2Stub, GetObjectStub
+from tests.stubs.http.hydrosphere import ListModelsStub, ListModelVersionsStub
+from tests.stubs.rpc.mocker import Mocker
 
 session = botocore.session.get_session()
-s3_client = ClientFactory.get_client('s3', session)
+s3_client = AWSClientFactory.get_client('s3', session)
+
+
+@staticmethod
+def get_mocked_stub(service_stub, channel: Union[grpc.Channel, None] = None):
+    channel = channel or RPCStubFactory._get_channel(os.environ["HYDROSPHERE_ENDPOINT"])
+    return Mocker(service_stub(channel))
+
+RPCStubFactory.get_stub = get_mocked_stub  # Mock gRPC calls for testing purposes
+
 
 S3_DATA_CAPTURE_BUCKET = os.environ['S3_DATA_CAPTURE_BUCKET']
 S3_DATA_CAPTURE_PREFIX = os.environ['S3_DATA_CAPTURE_PREFIX']
@@ -60,59 +81,65 @@ def s3_event():
     }
 
 
-# def test_lambda_handler(caplog, s3_event: dict):
-#     caplog.set_level(logging.DEBUG)
-#     transformed_model_name = utils.transform_model_name(MODEL_NAME)
+def test_lambda_handler(caplog, s3_event: dict):
+    caplog.set_level(logging.DEBUG)
+    transformed_model_name = utils.transform_model_name(MODEL_NAME)
 
-#     with Stubber(s3_client) as s3_stubber:
-#         with requests_mock.mock() as mock:
-#             # Stub ListObjectsV2 API call to list training data
-#             # bucket to find the biggest csv file
-#             list_objects_v2_stub = ListObjectsV2Stub(
-#                 S3_DATA_TRAINING_BUCKET, f"{S3_DATA_TRAINING_PREFIX}/{MODEL_NAME}"
-#             )
-#             s3_stubber.add_response(**list_objects_v2_stub.generate_response())
+    with Stubber(s3_client) as s3_stubber:
+        with requests_mock.mock() as mock:
+            model_version_id = 33
+            # Stub ListObjectsV2 API call to list training data
+            # bucket to find the biggest csv file
+            s3_stubber.add_response(
+                **ListObjectsV2Stub(
+                    S3_DATA_TRAINING_BUCKET,
+                    f"{S3_DATA_TRAINING_PREFIX}/{MODEL_NAME}"
+                ).generate_response()
+            )
 
-#             # Stub GetObject API call to read first line of
-#             # production request data to infer schema
-#             get_object_stub_test = GetObjectStub(
-#                 S3_DATA_CAPTURE_BUCKET,
-#                 CAPTURE_KEY,
-#                 'aws/traffic_shadowing/tests/test_file.jsonl'
-#             )
-#             s3_stubber.add_response(**get_object_stub_test.generate_response())
+            # Stub GetObject API call to read first line of
+            # production request data to infer schema
+            s3_stubber.add_response(
+                **GetObjectStub(
+                    S3_DATA_CAPTURE_BUCKET,
+                    CAPTURE_KEY,
+                    'aws/traffic_shadowing/tests/file.jsonl'
+                ).generate_response()
+            )
 
-#             # Stub GetObject API call to read first line of
-#             # training data to adjust inferred schema
-#             get_object_stub_train = GetObjectStub(
-#                 S3_DATA_TRAINING_BUCKET,
-#                 TRAINING_KEY,
-#                 'aws/traffic_shadowing/tests/train_file.csv'
-#             )
-#             s3_stubber.add_response(**get_object_stub_train.generate_response())
+            # Stub GetObject API call to read first line of
+            # training data to adjust inferred schema
+            s3_stubber.add_response(
+                **GetObjectStub(
+                    S3_DATA_TRAINING_BUCKET,
+                    TRAINING_KEY,
+                    'aws/traffic_shadowing/tests/file.csv'
+                ).generate_response()
+            )
 
-#             # Stub Hydrosphere API to list existing models
-#             list_models_stub = ListModelsStub(
-#                 transformed_model_name
-#             )
-#             mock.get(**list_models_stub.generate_response())
+            # Stub Hydrosphere API to list existing models
+            mock.get(
+                **ListModelsStub(transformed_model_name).generate_response()
+            )
 
-#             # Stub Hydrosphere API to fetch existing model version
-#             list_model_versions_stub = ListModelVersionsStub(
-#                 MODEL_NAME,
-#                 transformed_model_name,
-#                 1,
-#             )
-#             mock.get(**list_model_versions_stub.generate_response())
+            # Stub Hydrosphere API to fetch existing model version
+            mock.get(
+                **ListModelVersionsStub(
+                    MODEL_NAME,
+                    transformed_model_name,
+                    model_version_id=model_version_id,
+                ).generate_response()
+            )
 
-#             # Stub GetObject API call to read all file containing
-#             # captured requests for analysis.
-#             get_object_stub_test = GetObjectStub(
-#                 S3_DATA_CAPTURE_BUCKET, 
-#                 CAPTURE_KEY, 
-#                 'aws/traffic_shadowing/tests/test_file.jsonl'
-#             )
-#             s3_stubber.add_response(**get_object_stub_test.generate_response())
+            # Stub GetObject API call to read all file containing
+            # captured requests for analysis.
+            s3_stubber.add_response(
+                **GetObjectStub(
+                    S3_DATA_CAPTURE_BUCKET,
+                    CAPTURE_KEY,
+                    'aws/traffic_shadowing/tests/file.jsonl'
+                ).generate_response()
+            )
 
-#             result = lambda_handler(s3_event, "", session)
-#             assert result
+            result = lambda_handler(s3_event, "", session)
+            assert result["statusCode"] == 200

@@ -16,15 +16,15 @@ class SessionMixin:
             return session.get_scoped_config().get('region')
 
 
-class ClientFactory:
+class AWSClientFactory:
     """Helper class for managing singleton clients."""
     @staticmethod
     def get_client(name: str, session: Union[boto3.Session, botocore.session.Session]):
-        if getattr(ClientFactory, name, None):
-            return getattr(ClientFactory, name)
+        if getattr(AWSClientFactory, name, None):
+            return getattr(AWSClientFactory, name)
         else:
-            session = ClientFactory._get_client(name, session)
-            setattr(ClientFactory, name, session)
+            session = AWSClientFactory._get_client(name, session)
+            setattr(AWSClientFactory, name, session)
             return session
 
     @staticmethod

@@ -3,7 +3,7 @@ import logging
 import pprint
 import boto3
 import botocore
-from hydro_integrations.aws.helpers import SessionMixin, ClientFactory
+from hydro_integrations.aws.helpers import SessionMixin, AWSAWSClientFactory
 from hydro_integrations.aws.exceptions import (
     StackCanNotBeProcessed, StackIsBeingProcessed, StackNotFound
 )
@@ -36,7 +36,7 @@ class CloudFormation(SessionMixin):
         self.stack_parameters = stack_parameters
         self.stack_capabilities = stack_capabilities
         self._session = session or boto3.Session()
-        self._cf_client = ClientFactory.get_client('cloudformation', self._session)
+        self._cf_client = AWSAWSClientFactory.get_client('cloudformation', self._session)
 
         self.__stack_outputs = None
 

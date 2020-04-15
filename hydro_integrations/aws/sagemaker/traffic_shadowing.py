@@ -10,7 +10,7 @@ from hydro_integrations.aws.sagemaker.exceptions import (
     FunctionNotFound, DataCaptureConfigException
 )
 from hydro_integrations.aws.cloudformation import CloudFormation
-from hydro_integrations.aws.helpers import SessionMixin, ClientFactory
+from hydro_integrations.aws.helpers import SessionMixin, AWSClientFactory
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             session: Union[boto3.Session, botocore.session.Session, None] = None,
     ):
         self._session = session or boto3.Session()
-        self._s3_client = ClientFactory.get_client('s3', self._session)
+        self._s3_client = AWSClientFactory.get_client('s3', self._session)
 
         self.data_capture_enabled = data_capture_config.enable_capture
         if any(set(["REQUEST", "RESPONSE"]) - set(data_capture_config.capture_options)):

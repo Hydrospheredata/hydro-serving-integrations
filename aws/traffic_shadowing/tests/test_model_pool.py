@@ -1,18 +1,21 @@
+# pylint: disable=redefined-outer-name
+# pylint: disable=protected-access
 import os
 import pytest
 import botocore
 import requests_mock
-from src.clients import ClientFactory
+from src.clients import AWSClientFactory
 from src.model_pool import ModelPool
 from src.errors import ModelNotFound, DataUploadFailed, TimeOut, ApiNotAvailable
-from tests.stubs.mocker import (
+from tests.stubs.http.hydrosphere import (
     ListModelsStub, ListModelVersionsStub, RegisterExternalModelStub,
     UploadTrainingDataStub, WaitTrainingDataProcessingStub,
 )
-from tests.test_data import schema
+from tests.test_data import schema # pylint: disable=unused-import
+
 
 session = botocore.session.get_session()
-s3_client = ClientFactory.get_client('s3', session)
+s3_client = AWSClientFactory.get_client('s3', session)
 
 
 @pytest.fixture
@@ -36,7 +39,6 @@ def training_file_uri():
 
 
 def test_get_model_strict(valid_model_name, endpoint):
-    # pylint: disable=redefined-outer-name
     with requests_mock.mock(real_http=False) as mock:
         mock.get(
             **ListModelsStub(valid_model_name).generate_response()
@@ -51,7 +53,6 @@ def test_get_model_strict(valid_model_name, endpoint):
 
 
 def test_get_model_strict_fail(valid_model_name, model_name, endpoint):
-    # pylint: disable=redefined-outer-name
     with requests_mock.mock(real_http=False) as mock:
         mock.get(
             **ListModelsStub(valid_model_name).generate_response()
@@ -65,7 +66,6 @@ def test_get_model_strict_fail(valid_model_name, model_name, endpoint):
 
 
 def test_get_model_non_strict(valid_model_name, model_name, endpoint):
-    # pylint: disable=redefined-outer-name
     with requests_mock.mock(real_http=False) as mock:
         mock.get(
             **ListModelsStub(valid_model_name).generate_response()
@@ -80,7 +80,6 @@ def test_get_model_non_strict(valid_model_name, model_name, endpoint):
 
 
 def test_get_model_non_strict_fail(endpoint):
-    # pylint: disable=redefined-outer-name
     with requests_mock.mock(real_http=False) as mock:
         mock.get(**ListModelsStub().generate_response())
         with pytest.raises(ModelNotFound):
@@ -89,8 +88,6 @@ def test_get_model_non_strict_fail(endpoint):
 
 
 def test_register_model(valid_model_name, schema, endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.post(**RegisterExternalModelStub(
@@ -103,8 +100,6 @@ def test_register_model(valid_model_name, schema, endpoint):
 
 
 def test_upload_training_data(training_file_uri, endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.post(**UploadTrainingDataStub(
@@ -117,8 +112,6 @@ def test_upload_training_data(training_file_uri, endpoint):
 
 
 def test_upload_training_data_fail(training_file_uri, endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.post(**UploadTrainingDataStub(
@@ -131,8 +124,6 @@ def test_upload_training_data_fail(training_file_uri, endpoint):
 
 
 def test_wait_training_data_processed(endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.get(**WaitTrainingDataProcessingStub(
@@ -145,8 +136,6 @@ def test_wait_training_data_processed(endpoint):
 
 
 def test_wait_training_data_processed_timeout(endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.get(**WaitTrainingDataProcessingStub(
@@ -159,8 +148,6 @@ def test_wait_training_data_processed_timeout(endpoint):
 
 
 def test_wait_training_data_processed_fail(endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.get(**WaitTrainingDataProcessingStub(
@@ -173,8 +160,6 @@ def test_wait_training_data_processed_fail(endpoint):
 
 
 def test_wait_training_data_processed_not_registered(endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.get(**WaitTrainingDataProcessingStub(
@@ -187,8 +172,6 @@ def test_wait_training_data_processed_not_registered(endpoint):
 
 
 def test_wait_training_data_processed_unavailable(endpoint):
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=protected-access
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.get(**WaitTrainingDataProcessingStub(
@@ -201,7 +184,6 @@ def test_wait_training_data_processed_unavailable(endpoint):
 
 
 def test_create_model(valid_model_name, training_file_uri, schema, endpoint):
-    # pylint: disable=redefined-outer-name
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.post(**RegisterExternalModelStub(
@@ -228,7 +210,6 @@ def test_get_or_create_model(
         schema,
         endpoint,
 ):
-    # pylint: disable=redefined-outer-name
     with requests_mock.mock(real_http=False) as mock:
         model_version_id = 1
         mock.get(**ListModelsStub().generate_response())

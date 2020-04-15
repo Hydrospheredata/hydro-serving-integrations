@@ -1,12 +1,13 @@
 from typing import Union
-from tests.stubs.base import MockBase
+from tests.stubs.http.base import MockBase
 
 
 class ListModelsStub(MockBase):
     method = "/api/v2/model"
 
-    def __init__(self, name: Union[str, None] = None):
+    def __init__(self, name: Union[str, None] = None, model_id: int = 1):
         self.name = name
+        self.model_id = model_id
 
     @property
     def expected_params(self) -> dict:
@@ -16,13 +17,13 @@ class ListModelsStub(MockBase):
     def service_response(self) -> dict:
         response = [
             {
-                "id": 24,
+                "id": 2,
                 "name": "something-else",
             },
         ]
         if self.name is not None:
             response.append({
-                "id": 25,
+                "id": self.model_id,
                 "name": self.name,
             })
         return response

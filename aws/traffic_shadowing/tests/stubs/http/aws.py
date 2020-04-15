@@ -3,7 +3,7 @@ import datetime
 from dateutil.tz import tzutc
 from io import BytesIO
 from botocore.response import StreamingBody
-from tests.stubs.base import StubBase
+from tests.stubs.http.base import StubBase
 
 
 class ListObjectsV2Stub(StubBase):

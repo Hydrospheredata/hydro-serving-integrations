@@ -10,7 +10,7 @@ import boto3
 import botocore
 import hydro_serving_grpc as hs
 from src.utils import DTYPE_CONVERSIONS, VALUE_CONVERSIONS
-from src.clients import ClientFactory
+from src.clients import AWSClientFactory
 
 logger = logging.getLogger('main')
 
@@ -59,7 +59,7 @@ class Record:
         self.key = key
 
         self._session = session or boto3.Session()
-        self._s3_client = ClientFactory.get_client('s3', self._session)
+        self._s3_client = AWSClientFactory.get_client('s3', self._session)
 
     @classmethod
     def from_event_record(
@@ -89,7 +89,7 @@ class Contract:
             session: Union[boto3.Session, botocore.session.Session, None] = None
     ) -> 'Contract':
         self._session = session or boto3.Session()
-        self._s3_client = ClientFactory.get_client('s3', self._session)
+        self._s3_client = AWSClientFactory.get_client('s3', self._session)
 
         self.capture_record = capture_record
         self.train_record = train_record

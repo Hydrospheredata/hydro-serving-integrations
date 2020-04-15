@@ -2,14 +2,14 @@ import json
 import pytest
 import botocore
 from botocore.stub import Stubber
-from src.clients import ClientFactory
+from src.clients import AWSClientFactory
 from src.data import (
     Record, Contract, Request, SchemaDescription, ColumnDescription
 )
-from tests.stubs.stubber import GetObjectStub
+from tests.stubs.http.aws import GetObjectStub
 
 session = botocore.session.get_session()
-s3_client = ClientFactory.get_client('s3', session)
+s3_client = AWSClientFactory.get_client('s3', session)
 
 
 @pytest.fixture

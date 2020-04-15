@@ -62,6 +62,8 @@ class StubBase(ABC):
 
 class MockBase(StubBase, ABC):
     """Base class used for mocking HTTP requests."""
+    # pylint: disable=abstract-method
+
     def generate_response(self) -> dict:
         return {
             'url': urllib.parse.urljoin(HYDROSPHERE_ENDPOINT, self.method),
@@ -73,8 +75,3 @@ class MockBase(StubBase, ABC):
             'url': urllib.parse.urljoin(HYDROSPHERE_ENDPOINT, self.method),
             'status_code': self.http_status_code
         }
-
-
-class RPCBase(StubBase, ABC):
-    """Base class used for mocking RPC requests."""
-    pass

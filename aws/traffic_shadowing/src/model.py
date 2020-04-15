@@ -2,6 +2,7 @@
 import logging
 import os
 import urllib.parse
+from typing import Union
 
 import grpc
 import hydro_serving_grpc as hs
@@ -9,23 +10,9 @@ from hydro_serving_grpc.monitoring.api_pb2_grpc import MonitoringServiceStub
 from hydro_serving_grpc.monitoring.metadata_pb2 import ExecutionMetadata
 from hydro_serving_grpc.monitoring.api_pb2 import ExecutionInformation
 from src.data import Request
+from src.clients import RPCStubFactory
 
 logger = logging.getLogger('main')
-
-
-def make_grpc_channel(
-        uri,
-) -> grpc.Channel:
-    """ Makes gRPC channel from endpoint URI. """
-
-    parse = urllib.parse.urlparse(uri)
-    use_ssl_connection = parse.scheme == 'https'
-    if use_ssl_connection:
-        credentials = grpc.ssl_channel_credentials()
-        channel = grpc.secure_channel(parse.netloc, credentials=credentials)
-    else:
-        channel = grpc.insecure_channel(parse.netloc)
-    return channel
 
 
 class Model:
@@ -37,10 +24,7 @@ class Model:
         self.version = version
         self.model_version_id = model_version_id
         self.signature_name = "predict"
-
-        self.endpoint = os.environ["HYDROSPHERE_ENDPOINT"]
-        self.channel = make_grpc_channel(self.endpoint)
-        self.stub = MonitoringServiceStub(self.channel)
+        self.stub = RPCStubFactory.get_stub(MonitoringServiceStub)
 
     def _create_execution_metadata_proto(self, request: Request) -> ExecutionMetadata:
         """
