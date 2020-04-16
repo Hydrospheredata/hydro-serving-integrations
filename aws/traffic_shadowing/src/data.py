@@ -1,4 +1,6 @@
-"""This module provides interface for interacting with S3 data lake."""
+"""
+This module defines different data instances to work with accross other modules.
+"""
 import logging
 import json
 from typing import Generator, Dict, List, Tuple, Union
@@ -59,7 +61,7 @@ class Record:
         self.key = key
 
         self._session = session or boto3.Session()
-        self._s3_client = AWSClientFactory.get_client('s3', self._session)
+        self._s3_client = AWSClientFactory.get_or_create_client('s3', self._session)
 
     @classmethod
     def from_event_record(
@@ -67,6 +69,7 @@ class Record:
             event_record: dict, 
             session: Union[boto3.Session, botocore.session.Session, None] = None
     ) -> 'Record':
+        """Create `Record` instance from S3 event record."""
         return cls(
             event_record['s3']['bucket']['name'],
             event_record['s3']['object']['key'],
@@ -81,7 +84,7 @@ class Record:
 
 
 class Contract:
-    """Represents a contract for the model, inferred from file."""
+    """Class represents a contract of the model, inferred from records."""
     def __init__(
             self,
             capture_record: Record,                     # Should be jsonl file
@@ -89,7 +92,7 @@ class Contract:
             session: Union[boto3.Session, botocore.session.Session, None] = None
     ) -> 'Contract':
         self._session = session or boto3.Session()
-        self._s3_client = AWSClientFactory.get_client('s3', self._session)
+        self._s3_client = AWSClientFactory.get_or_create_client('s3', self._session)
 
         self.capture_record = capture_record
         self.train_record = train_record
@@ -99,8 +102,7 @@ class Contract:
 
     def _parse_schema(self) -> SchemaDescription:
         """
-        Infer inputs and outputs of the model based on the downloaded
-        file contents.
+        Infer inputs and outputs of the model based on a captured record's contents.
         """
         data = json.loads(next(self.capture_record.read()))
         inputs = data['captureData']['endpointInput']
@@ -119,7 +121,7 @@ class Contract:
         return schema
 
     def _parse_data(self, prefix: str, row: str) -> List[ColumnDescription]:
-        """Infer column schemas based on the input CSV row."""
+        """Infer column schemas based on a CSV row."""
         logger.debug("Inferencing a row schema")
         dataframe = pd.read_csv(StringIO(row), header=None)
         return [
@@ -134,7 +136,7 @@ class Contract:
 
     def _update_headers(self):
         """
-        Substitute synthetic headers with ones, extracted from a given bucket/key.
+        Substitute synthetic headers with ones, extracted from a training record.
         """
         logger.debug("Substituting header names")
         dataframe = pd.read_csv(BytesIO(next(self.train_record.read())))
@@ -144,7 +146,7 @@ class Contract:
 
 
 class Request:
-    """A single request, processed by a Sagemaker model."""
+    """A single request processed by a Sagemaker model."""
     __slots__ = ('inputs', 'outputs', 'metadata')
 
     def __init__(
@@ -177,6 +179,7 @@ class Request:
         return cls(inputs, outputs, metadata)
 
     def build_input_tensors(self) -> Dict:
+        """Build input tensors for Hydrosphere analysis."""
         return {
             column.description.name: hs.TensorProto(
                 **self._build_tensor_kwargs(column)
@@ -185,6 +188,7 @@ class Request:
         }
 
     def build_output_tensors(self) -> Dict:
+        """Build output tensors for Hydrosphere analysis."""
         return {
             column.description.name: hs.TensorProto(
                 **self._build_tensor_kwargs(column)
@@ -193,7 +197,7 @@ class Request:
         }
 
     def _build_tensor_kwargs(self, column: Column) -> Dict:
-        """Build keyword arguments for tensor constraction."""
+        """Build keyword arguments for tensor construction."""
         kwargs = {"dtype": column.description.htype}
         value_field = VALUE_CONVERSIONS.get(column.description.htype)
         value = pd.read_csv(StringIO(column.data), header=None)

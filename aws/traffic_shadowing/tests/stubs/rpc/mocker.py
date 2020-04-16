@@ -10,7 +10,7 @@ Usage:
         class TestUserInterface(unittest.TestCase):
             user_inter = UserInterface(...)
             def test_create_user(self):
-                result = self.user_inter.create_user(name='russellluo')
+                result = self.user_inter.create_user(name='Michael')
                 self.assertEqual(result, 0)
         ```
        The above test will pass if the real gRPC server is running, but
@@ -23,7 +23,7 @@ Usage:
         class TestUserInterface(unittest.TestCase):
             user_inter = Mocker(UserInterface(...))
             def test_create_user(self):
-                result = self.user_inter.create_user(name='russellluo')
+                result = self.user_inter.create_user(name='Michael')
                 self.assertEqual(result, 0)
         ```
         1) First, run the test once, by interacting with the real gRPC server
@@ -39,6 +39,8 @@ Internals:
     each call of each RPC function, and finally `Mocker` will change
     itself to be a complete replacement for the real gRPC interface.
 """
+# pylint: disable=protected-access,line-too-long,bad-continuation
+
 import pickle
 import functools
 import os
@@ -70,16 +72,16 @@ class Mocker(object):
 
     def __del__(self):
         mocker_file = os.path.abspath(__file__)
-        with open(mocker_file, 'r') as f:
-            content = f.read()
+        with open(mocker_file, 'r') as file:
+            content = file.read()
 
-        with open(mocker_file, 'w') as f:
+        with open(mocker_file, 'w') as file:
             fake_data_comment = '# Generated fake data'
             mocker_body = ''.join(content.rpartition(fake_data_comment)[:-1])
-            f.write(mocker_body)
+            file.write(mocker_body)
 
             fake_data_string = pprint.pformat(dict(self._data))
-            f.write('\n    _fake_data = ' + fake_data_string)
+            file.write('\n    _fake_data = ' + fake_data_string)
 
             # Generated fake data
     _fake_data = {'Analyze': {b'\x80\x03chydro_serving_grpc.monitoring.api_pb2\nExecutionInformation\nq\x00)Rq\x01}q\x02X\n\x00\x00\x00serializedq\x03B;\x01\x00\x00\n\xb1\x01\n@\n5DEMO-xgb-churn-pred-model-monitor-2020-03-11-12-25-04\x1a\x07predict\x12\x1a\n\x08Day Mins\x12\x0e\x08\x02\x12\x002\x08\x9a\x99\x99\x99\x999a@\x12\x14\n\tDay Calls\x12\x07\x08\t\x12\x00R\x01a\x12\x1f\n\rVMail Message\x12\x0e\x08\x02\x12\x002\x08\x9a\x99\x99\x99\x99\x99\xb9?\x12\x1a\n\x0eAccount Length\x12\x08\x08\t\x12\x00R\x02\xba\x01\x1a\x19\n\x17\n\x05Churn\x12\x0e\x08\x02\x12\x002\x08\x00\x00\x00 \xe58\x90?"j\x08!\x12\x07predict\x1a$3e580a13-174e-4c43-9b77-1b51fff4086e"5DEMO-xgb-churn-pred-model-monitor-2020-03-11-12-25-04(\x01q\x04sb\x85q\x05.\x80\x03}q\x00.': b'\x80\x03cg'

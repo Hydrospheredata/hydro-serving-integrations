@@ -1,15 +1,12 @@
 """
-This module contains utility function for performing traffic shadowing.
+This module contains utility functions for performing traffic shadowing.
 """
 import os
 import logging
 import urllib.parse
-from io import StringIO
-from typing import Tuple, Dict, Union
+from typing import Tuple, Union
 import boto3
 import botocore
-import pandas as pd
-import hydro_serving_grpc as hs
 from src import errors
 from src.clients import AWSClientFactory
 
@@ -107,7 +104,7 @@ class S3Utils:
     """Helper class for working with s3 related objects."""
     def __init__(self, session: Union[boto3.Session, botocore.session.Session, None] = None):
         self._session = session or boto3.Session()
-        self._s3_client = AWSClientFactory.get_client('s3', self._session)
+        self._s3_client = AWSClientFactory.get_or_create_client('s3', self._session)
 
     def get_largest_csv(self, bucket: str, prefix: str, model_name: str) -> str:
         """Parse largest csv file from bucket/prefix."""

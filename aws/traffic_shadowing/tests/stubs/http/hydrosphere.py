@@ -1,3 +1,4 @@
+# pylint: disable=missing-class-docstring
 from typing import Union
 from tests.stubs.http.base import MockBase
 

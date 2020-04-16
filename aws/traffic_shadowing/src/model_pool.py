@@ -1,11 +1,13 @@
-"""This module provides interface for interacting with Hydrosphere."""
+"""
+This module provides interface for interacting with Hydrosphere HTTP API.
+"""
 import logging
 import time
 import urllib.parse
-from typing import Dict, List
+from typing import List
 from enum import Enum
+
 import requests
-from requests import Response
 from src.utils import transform_model_name, PROFILE_CONVERSIONS
 from src.data import SchemaDescription, ColumnDescription
 from src.model import Model
@@ -20,7 +22,7 @@ class DataProfileStatus(Enum):
     NotRegistered = "NotRegistered"
 
 
-def find_model(endpoint: str, name: str) -> List[Dict]:
+def find_model(endpoint: str, name: str) -> List[dict]:
     """Fetch all models from Hydrosphere and filters candidates."""
     url = urllib.parse.urljoin(endpoint, "/api/v2/model")
     response = requests.get(url)
@@ -31,7 +33,7 @@ def find_model(endpoint: str, name: str) -> List[Dict]:
     return list(filter(lambda x: x["name"] == name, models))
 
 
-def find_model_version(endpoint: str, name: str, version: int) -> Dict:
+def find_model_version(endpoint: str, name: str, version: int) -> dict:
     """
     Fetch a specific model version from Hydrosphere and returns
     a set of parameters.
@@ -66,7 +68,7 @@ class ModelPool:
             name: str,
             schema: SchemaDescription,
             training_file: str,
-            metadata: Dict = None
+            metadata: dict = None
     ) -> Model:
         """Try to load an existing model or register a new one."""
         try:
@@ -106,7 +108,7 @@ class ModelPool:
             name: str,
             schema: SchemaDescription,
             training_file: str,
-            metadata: Dict = None
+            metadata: dict = None
     ) -> Model:
         """
         Register an external model in the Hydrosphere platform
@@ -127,7 +129,7 @@ class ModelPool:
             model_version_id,
             timeout: int = 120,
             retry: int = 3
-    ) -> Response:
+    ) -> requests.Response:
         """Wait till the data gets processed."""
         url = urllib.parse.urljoin(
             self.endpoint, f"/monitoring/profiles/batch/{model_version_id}/status")
@@ -160,7 +162,7 @@ class ModelPool:
                 raise errors.DataUploadFailed(f"Failed to upload the data: {status}")
         return result
 
-    def _upload_training_data(self, model_version_id: int, training_file: str) -> Response:
+    def _upload_training_data(self, model_version_id: int, training_file: str) -> requests.Response:
         """Upload training data for the model."""
         self.logger.info("Uploading training data at %s", training_file)
         url = urllib.parse.urljoin(
@@ -170,7 +172,7 @@ class ModelPool:
             raise errors.DataUploadFailed("Failed to submit data processing task")
         return result
 
-    def _register_model(self, name, schema, metadata) -> Model:
+    def _register_model(self, name: str, schema: SchemaDescription, metadata: dict) -> Model:
         """Perform registration request."""
         self.logger.debug("Registering a new model")
         metadata = metadata or {}
@@ -191,16 +193,16 @@ class ModelPool:
                 f"Could not register a model: {result.content}")
         return response
 
-    def _create_feature(self, schema: ColumnDescription) -> Dict:
+    def _create_feature(self, column: ColumnDescription) -> dict:
         """Create a single feature for the model registration contract."""
         return {
-            "name":     schema.name,
-            "dtype":    schema.htype,
-            "profile":  PROFILE_CONVERSIONS.get(schema.dtype),
+            "name":     column.name,
+            "dtype":    column.htype,
+            "profile":  PROFILE_CONVERSIONS.get(column.dtype),
             "shape": {
                 "dim": [
-                    {"size": dim, "name": f"{schema.name}_{i}"}
-                    for i, dim in enumerate(schema.shape)
+                    {"size": dim, "name": f"{column.name}_{i}"}
+                    for i, dim in enumerate(column.shape)
                 ],
                 "unknownRank": False,
             }
@@ -210,8 +212,8 @@ class ModelPool:
             self,
             name: str,
             schema: SchemaDescription,
-            metadata: Dict
-    ) -> Dict:
+            metadata: dict
+    ) -> dict:
         """Create a request body for external model registration request."""
         body = {
             "name": name,

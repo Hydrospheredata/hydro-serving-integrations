@@ -1,10 +1,8 @@
-"""This module provides interface for interacting with Hydrosphere."""
+"""
+This module provides interface for interacting with Hydrosphere.
+"""
 import logging
-import os
-import urllib.parse
-from typing import Union
 
-import grpc
 import hydro_serving_grpc as hs
 from hydro_serving_grpc.monitoring.api_pb2_grpc import MonitoringServiceStub
 from hydro_serving_grpc.monitoring.metadata_pb2 import ExecutionMetadata
@@ -24,7 +22,7 @@ class Model:
         self.version = version
         self.model_version_id = model_version_id
         self.signature_name = "predict"
-        self.stub = RPCStubFactory.get_stub(MonitoringServiceStub)
+        self.stub = RPCStubFactory.create_stub(MonitoringServiceStub)
 
     def _create_execution_metadata_proto(self, request: Request) -> ExecutionMetadata:
         """

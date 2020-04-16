@@ -1,3 +1,9 @@
+"""
+This module defines various exceptions.
+"""
+
+# pylint: disable=missing-class-docstring
+
 class ModelNotFound(Exception):
     pass
 

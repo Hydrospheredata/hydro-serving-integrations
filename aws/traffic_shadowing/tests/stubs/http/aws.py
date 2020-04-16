@@ -1,7 +1,8 @@
+# pylint: disable=missing-function-docstring,missing-class-docstring
 import os
 import datetime
-from dateutil.tz import tzutc
 from io import BytesIO
+from dateutil.tz import tzutc
 from botocore.response import StreamingBody
 from tests.stubs.http.base import StubBase
 
@@ -26,7 +27,7 @@ class ListObjectsV2Stub(StubBase):
             'IsTruncated': False,
             'Contents': [
                 {
-                    'Key': f'{self.prefix}/training-dataset-with-header.csv',
+                    'Key': f'{self.prefix}/file.csv',
                     'LastModified': datetime.datetime(2020, 3, 11, 12, 33, 25, tzinfo=tzutc()),
                     'ETag': '"0ddd8b2d8653a3ad0cf6472ac79de46f"',
                     'Size': 1010,

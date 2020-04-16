@@ -1,6 +1,5 @@
 """
-Lambda function shadowing traffic from SageMaker models
-to the Hydrosphere platform.
+Lambda function shadowing traffic from SageMaker models to the Hydrosphere platform.
 """
 import logging
 import json
@@ -14,7 +13,7 @@ from src import log  # pylint: disable=unused-import
 from src import utils
 from src.utils import S3Utils
 
-logger = logging.getLogger('main')
+logger = logging.getLogger(__name__)
 
 S3_DATA_CAPTURE_BUCKET = os.environ['S3_DATA_CAPTURE_BUCKET']
 S3_DATA_CAPTURE_PREFIX = os.environ['S3_DATA_CAPTURE_PREFIX']
@@ -57,6 +56,7 @@ def lambda_handler(
         model = model_pool.get_or_create_model(
             model_name, contract.schema, training_file_uri
         )
+        j = 0
         for j, data in enumerate(capture_record.read()):
             logger.debug("Reading %d request", j)
             request = Request.from_dict(json.loads(data), contract.schema)
