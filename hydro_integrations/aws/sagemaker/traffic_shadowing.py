@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 
 def flatten(items: Iterable) -> Iterable:
     """Yield items from any nested iterable."""
-    for x in items:
-        if isinstance(x, Iterable) and not isinstance(x, (str, bytes, dict)):
-            for sub_x in flatten(x):
-                yield sub_x
+    for item in items:
+        if isinstance(item, Iterable) and not isinstance(item, (str, bytes, dict)):
+            for sub_item in flatten(item):
+                yield sub_item
         else:
-            yield x
+            yield item
 
 
 def append_hash(target: str, to_hash: List[str]) -> str:
@@ -58,7 +58,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             session: Union[boto3.Session, botocore.session.Session, None] = None,
     ):
         self._session = session or boto3.Session()
-        self._s3_client = AWSClientFactory.get_client('s3', self._session)
+        self._s3_client = AWSClientFactory.get_or_create_client('s3', self._session)
 
         self.data_capture_enabled = data_capture_config.enable_capture
         if any(set(["REQUEST", "RESPONSE"]) - set(data_capture_config.capture_options)):
@@ -137,6 +137,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         ]
 
     def get_stack_capabilities(self) -> List[str]:
+        """Get capabilities list for deploying underlying CloudFormation stack."""
         return ["CAPABILITY_NAMED_IAM"]
 
     def _get_lambda_arn(self) -> dict:

@@ -1,8 +1,11 @@
+# pylint: disable=missing-class-docstring,line-too-long
+
 import datetime
-from dateutil.tz import tzutc
 from uuid import uuid4
-from typing import List, Union
+from typing import List
+from dateutil.tz import tzutc
 from tests.stubs import StubBase
+
 
 # CloudFormation Stubs
 # --------------------
@@ -130,6 +133,38 @@ class DeleteStackStub(StubBase):
 
 # S3 Stubs
 # --------
+
+class GetBucketLocationStub(StubBase):
+    method = 'get_bucket_location'
+
+    def __init__(self, bucket: str):
+        self.bucket = bucket
+
+    @property
+    def expected_params(self):
+        return {
+            "Bucket": self.bucket,
+        }
+
+    @property
+    def service_response(self):
+        return {
+            'ResponseMetadata': {
+                'RequestId': 'xxxxxxxxxxxxxxxx',
+                'HostId': 'xxxxxxxxxxx+xxxxxxxxxxxxx+xxxxxxxxxxx/xxxxxxxxxxx+xxxxxxxxxxxxxxxxxxxxxxxxx=',
+                'HTTPStatusCode': 200,
+                'HTTPHeaders': {
+                    'x-amz-id-2': 'xxxxxxxxxxx+xxxxxxxxxxxxx+xxxxxxxxxxx/xxxxxxxxxxx+xxxxxxxxxxxxxxxxxxxxxxxxx=',
+                    'x-amz-request-id': 'xxxxxxxxxxxxxxxx',
+                    'date': 'Thu, 16 Apr 2020 10:55:06 GMT',
+                    'content-type': 'application/xml',
+                    'transfer-encoding': 'chunked',
+                    'server': 'AmazonS3'
+                },
+                'RetryAttempts': 0
+            },
+            'LocationConstraint': 'eu-west-3'
+        }
 
 class GetEmptyNotificationStub(StubBase):
     method = 'get_bucket_notification_configuration'

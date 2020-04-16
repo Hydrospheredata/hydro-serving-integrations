@@ -29,8 +29,8 @@ class ListObjectsV2Stub(StubBase):
                 {
                     'Key': f'{self.prefix}/file.csv',
                     'LastModified': datetime.datetime(2020, 3, 11, 12, 33, 25, tzinfo=tzutc()),
-                    'ETag': '"0ddd8b2d8653a3ad0cf6472ac79de46f"',
-                    'Size': 1010,
+                    'ETag': '"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"',
+                    'Size': 87,
                     'StorageClass': 'STANDARD'
                 },
             ],
