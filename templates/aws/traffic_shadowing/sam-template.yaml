@@ -30,7 +30,7 @@ Resources:
       Runtime: python3.7
       Timeout: 240
       MemorySize: 256
-      Handler: src.lambda.lambda_handler
+      Handler: src.handler.lambda_handler
       Environment:
         Variables:
           S3_DATA_CAPTURE_BUCKET: 
