@@ -1,11 +1,14 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open("README.md", "r") as file:
+    long_description = file.read()
+
+with open("version", "r") as file:
+    version = file.read()
 
 setuptools.setup(
-    name="hydro_integrations", # Replace with your own username
-    version="0.0.1",
+    name="hydro_integrations",
+    version=version,
     packages=setuptools.find_packages(),
 
     install_requires=[
@@ -20,7 +23,7 @@ setuptools.setup(
     author="Hydrospheredata",
     author_email="info@hydrosphere.io",
     description="HydroSDK integrations",
-    keywords="hydrosphere hydro sagemaker integrations",
+    keywords="hydrosphere hydro serving monitoring sagemaker integrations",
     url="https://hydrosphere.io/",
 
     long_description=long_description,
@@ -30,5 +33,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
 )
