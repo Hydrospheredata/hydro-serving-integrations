@@ -36,8 +36,8 @@ def append_hash(target: str, to_hash: List[str]) -> str:
 
 def get_template_version() -> str:
     """Read template version from packaged file."""
-    with open("template_version.txt", "r") as file:
-        return file.read()
+    with open("template_version", "r") as file:
+        return file.read().strip()
 
 
 def get_region_bucket(region: str) -> str:
@@ -48,7 +48,7 @@ def get_region_bucket(region: str) -> str:
 class TrafficShadowing(CloudFormation, SessionMixin):
     """ Serverless application to shadow traffic to Hydrosphere. """
     STACK_NAME = "traffic-shadowing-hydrosphere"
-    TEMPLATE_URI = "https://{}.s3.{}.amazonaws.com/cloudformation/TrafficShadowing/{}.yaml"
+    TEMPLATE_URI = "https://{}.s3.{}.amazonaws.com/cloudformation/traffic_shadowing/{}.yaml"
 
     def __init__(
             self,

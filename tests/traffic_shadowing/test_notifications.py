@@ -13,7 +13,6 @@ from tests.traffic_shadowing.config import (
 from tests.traffic_shadowing.config import session, s3_client, cloudformation_client
 
 
-
 @pytest.fixture
 def shadowing():
     with Stubber(s3_client) as s3_stubber:

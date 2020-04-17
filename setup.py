@@ -17,8 +17,9 @@ setuptools.setup(
     ],
 
     package_data={
-        "template_version": ["template_version.txt"]
+        "template_version": ["template_version"]
     },
+    include_package_data=True,
 
     author="Hydrospheredata",
     author_email="info@hydrosphere.io",

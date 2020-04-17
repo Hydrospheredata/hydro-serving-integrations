@@ -1,6 +1,7 @@
 # pylint: disable=redefined-outer-name
 import logging
 import pytest
+import urllib.parse
 from botocore.stub import Stubber
 from sagemaker.model_monitor.data_capture_config import DataCaptureConfig
 from hydro_integrations.aws.sagemaker import TrafficShadowing
