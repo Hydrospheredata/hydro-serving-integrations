@@ -6,7 +6,7 @@ def validate_non_empty_uri(
         require_schema: bool,
         require_netloc: bool,
         require_path: bool
-):  
+):
     """ Validate uri for non-empty schema/netloc/path. """
     parse = urllib.parse.urlparse(uri)
     if require_schema:

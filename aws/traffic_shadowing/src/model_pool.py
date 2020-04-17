@@ -1,8 +1,12 @@
+"""
+This module provides interface for interacting with Hydrosphere HTTP API.
+"""
 import logging
 import time
 import urllib.parse
-from typing import Dict, List
+from typing import List
 from enum import Enum
+
 import requests
 from src.utils import transform_model_name, PROFILE_CONVERSIONS
 from src.data import SchemaDescription, ColumnDescription
@@ -18,10 +22,8 @@ class DataProfileStatus(Enum):
     NotRegistered = "NotRegistered"
 
 
-def find_model(endpoint: str, name: str) -> List[Dict]:
-    """
-    Fetches all models from Hydrosphere and filters candidates.
-    """
+def find_model(endpoint: str, name: str) -> List[dict]:
+    """Fetch all models from Hydrosphere and filters candidates."""
     url = urllib.parse.urljoin(endpoint, "/api/v2/model")
     response = requests.get(url)
     if response.status_code == 200:
@@ -31,9 +33,9 @@ def find_model(endpoint: str, name: str) -> List[Dict]:
     return list(filter(lambda x: x["name"] == name, models))
 
 
-def find_model_version(endpoint: str, name: str, version: int) -> Dict:
+def find_model_version(endpoint: str, name: str, version: int) -> dict:
     """
-    Fetches a specific model version from Hydrosphere and returns
+    Fetch a specific model version from Hydrosphere and returns
     a set of parameters.
     """
     url = urllib.parse.urljoin(
@@ -66,20 +68,16 @@ class ModelPool:
             name: str,
             schema: SchemaDescription,
             training_file: str,
-            metadata: Dict = None
+            metadata: dict = None
     ) -> Model:
-        """
-        Tries to load an existing model or register a new one.
-        """
+        """Try to load an existing model or register a new one."""
         try:
             return self.get_model(name)
         except errors.ModelNotFound:
             return self.create_model(name, schema, training_file, metadata)
 
     def get_model(self, name: str, strict: bool = False) -> Model:
-        """
-        Retrieves an existing model from Hydrosphere.
-        """
+        """Retrieve an existing model from Hydrosphere."""
         model = None
         candidates = find_model(self.endpoint, name)
         if candidates:
@@ -91,7 +89,7 @@ class ModelPool:
             model = Model(
                 result["name"], result["version"], result["model_version_id"])
         if not (model or strict):
-            self.logger.warning('Didn\'t find the exact match for "%s" model name', name)
+            self.logger.info('Didn\'t find the exact match for "%s" model name', name)
             candidates = find_model(self.endpoint, transform_model_name(name))
             if candidates:
                 self.logger.debug(
@@ -110,10 +108,10 @@ class ModelPool:
             name: str,
             schema: SchemaDescription,
             training_file: str,
-            metadata: Dict = None
+            metadata: dict = None
     ) -> Model:
         """
-        Registers an external model in the Hydrosphere platform
+        Register an external model in the Hydrosphere platform
         and uploads training data.
         """
         registration_response = self._register_model(name, schema, metadata)
@@ -126,16 +124,20 @@ class ModelPool:
         self._wait_for_data_processing(model.model_version_id)
         return model
 
-    def _wait_for_data_processing(self, model_version_id, timeout: int = 120, retry: int = 3):
-        """
-        Waits till the data gets processed.
-        """
+    def _wait_for_data_processing(
+            self,
+            model_version_id,
+            timeout: int = 120,
+            retry: int = 3
+    ) -> requests.Response:
+        """Wait till the data gets processed."""
         url = urllib.parse.urljoin(
             self.endpoint, f"/monitoring/profiles/batch/{model_version_id}/status")
 
+        result = None
         while True:
-            response = requests.get(url)
-            if response.status_code != 200:
+            result = requests.get(url)
+            if result.status_code != 200:
                 if retry > 0:
                     retry -= 1
                     time.sleep(5)
@@ -144,11 +146,11 @@ class ModelPool:
                     raise errors.ApiNotAvailable(
                         "Could not fetch the status of the data processing task.")
 
-            body = response.json()
+            body = result.json()
             status = DataProfileStatus[body["kind"]]
             if status == DataProfileStatus.Processing:
                 if timeout > 0:
-                    seconds = 10
+                    seconds = min(10, timeout)
                     timeout -= seconds
                     time.sleep(seconds)
                     continue
@@ -158,22 +160,20 @@ class ModelPool:
                 break
             else:
                 raise errors.DataUploadFailed(f"Failed to upload the data: {status}")
+        return result
 
-    def _upload_training_data(self, model_version_id: int, training_file: str):
-        """
-        Upload training data for the model.
-        """
+    def _upload_training_data(self, model_version_id: int, training_file: str) -> requests.Response:
+        """Upload training data for the model."""
         self.logger.info("Uploading training data at %s", training_file)
         url = urllib.parse.urljoin(
             self.endpoint, f"/monitoring/profiles/batch/{model_version_id}/s3")
-        response = requests.post(url, json={"path": training_file})
-        if response.status_code != 200:
+        result = requests.post(url, json={"path": training_file})
+        if result.status_code != 200:
             raise errors.DataUploadFailed("Failed to submit data processing task")
+        return result
 
-    def _register_model(self, name, schema, metadata) -> Model:
-        """
-        Performs registration request.
-        """
+    def _register_model(self, name: str, schema: SchemaDescription, metadata: dict) -> Model:
+        """Perform registration request."""
         self.logger.debug("Registering a new model")
         metadata = metadata or {}
         metadata["original_model_name"] = name
@@ -193,18 +193,16 @@ class ModelPool:
                 f"Could not register a model: {result.content}")
         return response
 
-    def _create_feature(self, schema: ColumnDescription) -> Dict:
-        """
-        Creates a single feature for the model registration contract.
-        """
+    def _create_feature(self, column: ColumnDescription) -> dict:
+        """Create a single feature for the model registration contract."""
         return {
-            "name":     schema.name,
-            "dtype":    schema.htype,
-            "profile":  PROFILE_CONVERSIONS.get(schema.dtype),
+            "name":     column.name,
+            "dtype":    column.htype,
+            "profile":  PROFILE_CONVERSIONS.get(column.dtype),
             "shape": {
                 "dim": [
-                    {"size": dim, "name": f"{schema.name}_{i}"}
-                    for i, dim in enumerate(schema.shape)
+                    {"size": dim, "name": f"{column.name}_{i}"}
+                    for i, dim in enumerate(column.shape)
                 ],
                 "unknownRank": False,
             }
@@ -214,11 +212,9 @@ class ModelPool:
             self,
             name: str,
             schema: SchemaDescription,
-            metadata: Dict
-    ) -> Dict:
-        """
-        Creates a request body for external model registration request.
-        """
+            metadata: dict
+    ) -> dict:
+        """Create a request body for external model registration request."""
         body = {
             "name": name,
             "metadata": metadata or {},

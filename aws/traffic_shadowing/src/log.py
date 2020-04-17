@@ -1,7 +1,6 @@
 """
 This module configures logging for the Lambda function.
 """
-
 import logging.config
 
 logging.config.dictConfig({

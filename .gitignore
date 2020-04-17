@@ -248,3 +248,4 @@ $RECYCLE.BIN/
 .envrc
 events/
 template_version.txt
+test-report.xml

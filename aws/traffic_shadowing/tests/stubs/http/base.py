@@ -1,5 +1,10 @@
+import os
+import urllib.parse
+import json
 from typing import Union
 from abc import ABC, abstractmethod
+
+HYDROSPHERE_ENDPOINT = os.environ['HYDROSPHERE_ENDPOINT']
 
 
 class StubBase(ABC):
@@ -63,4 +68,23 @@ class StubBase(ABC):
             'service_error_meta': self.service_error_meta,
             'expected_params': self.expected_params,
             'response_meta': self.response_meta,
+        }
+
+
+class MockBase(StubBase, ABC):
+    """Base class used for mocking HTTP requests."""
+    # pylint: disable=abstract-method
+
+    def generate_response(self) -> dict:
+        """Helper function to quickly generate kwargs for requests_mock package."""
+        return {
+            'url': urllib.parse.urljoin(HYDROSPHERE_ENDPOINT, self.method),
+            'text': json.dumps(self.service_response),
+        }
+
+    def generate_client_error(self) -> dict:
+        """Helper function to quickly generate kwargs for requests_mock package."""
+        return {
+            'url': urllib.parse.urljoin(HYDROSPHERE_ENDPOINT, self.method),
+            'status_code': self.http_status_code
         }
