@@ -3,13 +3,30 @@ def repository = 'hydro-serving-integrations'
 def buildAndPublishReleaseFunction = {
     configFileProvider([configFile(fileId: 'PYPIDeployConfiguration', targetLocation: '.pypirc', variable: 'PYPI_SETTINGS')]) {
         sh """#!/bin/bash
+        # prepare environment
         python3 -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
+
+        # run tests for lambda distribution
+        # and for hydro-integrations sdk
         tox
+
+        # build lambda distribution artifacts
+        cd scrips/aws/traffic_shadowing
+        ./sam-build.sh
+        ./sam-package.sh
+        
+        # publish lambda distribution artifacts
+        ./cf-build-upload.sh
+        cd ../../../
+        
+        # build hydro-integrations sdk
         pip install -r requirements.txt
         python setup.py bdist_wheel
+
+        # publish hydro-integrations sdk package
         python -m twine upload --config-file ${env.WORKSPACE}/.pypirc -r pypi ${env.WORKSPACE}/dist/*
         deactivate
     """
@@ -18,12 +35,25 @@ def buildAndPublishReleaseFunction = {
 
 def buildFunction = {
     sh """#!/bin/bash
+        # prepare environment
         python3 -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
-        
+
+        # run tests for lambda distribution
+        # and for hydro-integrations sdk
         tox
+
+        # check that lambda distribution
+        # can be built
+        cd scrips/aws/traffic_shadowing
+        ./sam-build.sh
+        ./sam-package.sh
+        cd ../../../
+
+        # check that hydro-integrations
+        # sdk can be built
         pip install -r requirements.txt
         python setup.py bdist_wheel
         deactivate
@@ -39,7 +69,7 @@ pipelineCommon(
     false, //needSonarQualityGate,
     [],
     collectTestResults,
-    buildFunction,
+    buildAndPublishReleaseFunction,
     buildFunction,
     buildFunction
 )

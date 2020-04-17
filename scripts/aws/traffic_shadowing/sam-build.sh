@@ -5,7 +5,6 @@ set -e
 [ -z "$CODE_DIR" ] && CODE_DIR="../../../aws/traffic_shadowing"
 [ -z "$DIST_DIR" ] && DIST_DIR="../../../dist/aws/traffic_shadowing"
 [ -z "$BUILD_DIR" ] && BUILD_DIR="../../../build/aws/traffic_shadowing"
-[ -z "$EVENT_JSON" ] && EVENT_JSON="../../../events/aws/traffic_shadowing/event.json"
 
 sam build --debug \
     --use-container \
