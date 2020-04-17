@@ -4,7 +4,7 @@ with open("README.md", "r") as file:
     long_description = file.read()
 
 with open("version", "r") as file:
-    version = file.read()
+    version = file.read().strip()
 
 setuptools.setup(
     name="hydro_integrations",
@@ -17,7 +17,7 @@ setuptools.setup(
     ],
 
     package_data={
-        "template_version": ["template_version.txt"],
+        "template_version": ["template_version.txt"]
     },
 
     author="Hydrospheredata",
