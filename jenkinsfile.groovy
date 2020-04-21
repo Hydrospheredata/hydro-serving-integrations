@@ -12,7 +12,7 @@ def buildAndPublishReleaseFunction = {
         pyenv install --skip-existing $PY_36
         pyenv install --skip-existing $PY_37
         pyenv install --skip-existing $PY_38
-        eval \"$(pyenv init -)\"
+        `pyenv init -`
         pyenv shell $PY_36 $PY_37 $PY_38
         
         python -m venv venv
