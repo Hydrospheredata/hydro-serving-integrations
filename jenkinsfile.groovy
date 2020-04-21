@@ -9,11 +9,11 @@ def buildAndPublishReleaseFunction = {
         export PY_36=3.6.10
         export PY_37=3.7.7
         export PY_38=3.8.2
-        pyenv install --skip-existing ${PY_36}
-        pyenv install --skip-existing ${PY_37}
-        pyenv install --skip-existing ${PY_38}
+        pyenv install --skip-existing ${env.PY_36}
+        pyenv install --skip-existing ${env.PY_37}
+        pyenv install --skip-existing ${env.PY_38}
         `pyenv init -`
-        pyenv shell ${PY_36} ${PY_37} ${PY_38}
+        pyenv shell ${env.PY_36} ${env.PY_37} ${env.PY_38}
         
         python -m venv venv
         source venv/bin/activate
@@ -52,11 +52,11 @@ def buildFunction = {
         export PY_36=3.6.10
         export PY_37=3.7.7
         export PY_38=3.8.2
-        pyenv install --skip-existing ${PY_36}
-        pyenv install --skip-existing ${PY_37}
-        pyenv install --skip-existing ${PY_38}
+        pyenv install --skip-existing ${env.PY_36}
+        pyenv install --skip-existing ${env.PY_37}
+        pyenv install --skip-existing ${env.PY_38}
         `pyenv init -`
-        pyenv shell ${PY_36} ${PY_37} ${PY_38}
+        pyenv shell ${env.PY_36} ${env.PY_37} ${env.PY_38}
         
         python -m venv venv
         source venv/bin/activate
