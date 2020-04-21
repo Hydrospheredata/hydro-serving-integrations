@@ -3,8 +3,19 @@ def repository = 'hydro-serving-integrations'
 def buildAndPublishReleaseFunction = {
     configFileProvider([configFile(fileId: 'PYPIDeployConfiguration', targetLocation: '.pypirc', variable: 'PYPI_SETTINGS')]) {
         sh """#!/bin/bash
+        set -e
+
         # prepare environment
-        python3 -m venv venv
+        export PY_36=3.6.10
+        export PY_37=3.7.7
+        export PY_38=3.8.2
+        pyenv install --skip-existing $PY_36
+        pyenv install --skip-existing $PY_37
+        pyenv install --skip-existing $PY_38
+        eval "$(pyenv init -)"
+        pyenv shell $PY_36 $PY_37 $PY_38
+        
+        python -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
@@ -35,8 +46,19 @@ def buildAndPublishReleaseFunction = {
 
 def buildFunction = {
     sh """#!/bin/bash
+        set -e
+
         # prepare environment
-        python3 -m venv venv
+        export PY_36=3.6.10
+        export PY_37=3.7.7
+        export PY_38=3.8.2
+        pyenv install --skip-existing $PY_36
+        pyenv install --skip-existing $PY_37
+        pyenv install --skip-existing $PY_38
+        eval "$(pyenv init -)"
+        pyenv shell $PY_36 $PY_37 $PY_38
+        
+        python -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
