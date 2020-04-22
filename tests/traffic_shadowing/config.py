@@ -1,5 +1,5 @@
 import os
-import botocore
+import boto3
 from hydro_integrations.aws.helpers import AWSClientFactory
 
 HYDROSPHERE_ENDPOINT = os.environ["HYDROSPHERE_ENDPOINT"]
@@ -10,6 +10,6 @@ CAPTURE_BUCKET = os.environ["S3_DATA_CAPTURE_BUCKET"]
 CAPTURE_PREFIX = os.environ["S3_DATA_CAPTURE_PREFIX"]
 CAPTURE_PREFIX_FULL = f"s3://{CAPTURE_BUCKET}/{CAPTURE_PREFIX}"
 
-session = botocore.session.get_session()
+session = boto3.session.Session()
 s3_client = AWSClientFactory.get_or_create_client('s3', session)
 cloudformation_client = AWSClientFactory.get_or_create_client('cloudformation', session)
