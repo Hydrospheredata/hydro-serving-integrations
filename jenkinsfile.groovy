@@ -96,7 +96,6 @@ def buildFunction = {
             # can be built
             cd scripts/aws/traffic_shadowing
             ./sam-build.sh
-            ./sam-package.sh
             cd ../../../
 
             # check that hydro-integrations
