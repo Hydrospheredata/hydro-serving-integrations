@@ -8,6 +8,12 @@ def buildAndPublishReleaseFunction = {
         string(credentialsId: 'HydroIntegrationsS3DataCapturePrefix', variable: 'S3_DATA_CAPTURE_PREFIX'),
         string(credentialsId: 'HydroIntegrationsS3DataTrainingBucket', variable: 'S3_DATA_TRAINING_BUCKET'),
         string(credentialsId: 'HydroIntegrationsS3DataTrainingPrefix', variable: 'S3_DATA_TRAINING_PREFIX'),
+        [
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: 'aws-hydrosphere-jenkins-credentials',
+            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ],
     ]) {
         configFileProvider([configFile(fileId: 'PYPIDeployConfiguration', targetLocation: '.pypirc', variable: 'PYPI_SETTINGS')]) {
             sh """#!/bin/bash
@@ -59,6 +65,12 @@ def buildFunction = {
         string(credentialsId: 'HydroIntegrationsS3DataCapturePrefix', variable: 'S3_DATA_CAPTURE_PREFIX'),
         string(credentialsId: 'HydroIntegrationsS3DataTrainingBucket', variable: 'S3_DATA_TRAINING_BUCKET'),
         string(credentialsId: 'HydroIntegrationsS3DataTrainingPrefix', variable: 'S3_DATA_TRAINING_PREFIX'),
+        [
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: 'aws-hydrosphere-jenkins-credentials',
+            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ],
     ]) {
         sh """#!/bin/bash
             set -ex
@@ -75,7 +87,7 @@ def buildFunction = {
             pip install wheel~=0.34.2
             pip install tox~=3.14.5
             pip install aws-sam-cli~=0.47.0
-            
+
             # run tests for lambda distribution
             # and for hydro-integrations sdk
             tox
