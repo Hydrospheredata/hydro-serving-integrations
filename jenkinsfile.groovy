@@ -5,13 +5,27 @@ def buildAndPublishReleaseFunction = {
         sh """#!/bin/bash
         set -ex
 
-        echo \$PATH
         # prepare environment
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.8.2
-        eval "\$(pyenv init -)"
-        /home/ubuntu/.pyenv/bin/pyenv shell 3.6.10 3.7.7 3.8.2
+        
+        command /home/ubuntu/.pyenv/bin/pyenv rehash 2>/dev/null
+        pyenv() {
+            local command
+            command="\${1:-}"
+            if [ "\$#" -gt 0 ]; then
+                shift
+            fi
+
+            case "\$command" in
+            activate|deactivate|rehash|shell)
+                eval "\$(/home/ubuntu/.pyenv/bin/pyenv "sh-$command" "$@")";;
+            *)
+                command /home/ubuntu/.pyenv/bin/pyenv "$command" "$@";;
+            esac
+        }
+        pyenv shell 3.6.10 3.7.7 3.8.2
         
         python -m venv venv
         source venv/bin/activate
@@ -51,8 +65,23 @@ def buildFunction = {
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.8.2
-        eval "\$(pyenv init -)"
-        /home/ubuntu/.pyenv/bin/pyenv shell 3.6.10 3.7.7 3.8.2
+        
+        command /home/ubuntu/.pyenv/bin/pyenv rehash 2>/dev/null
+        pyenv() {
+            local command
+            command="\${1:-}"
+            if [ "\$#" -gt 0 ]; then
+                shift
+            fi
+
+            case "\$command" in
+            activate|deactivate|rehash|shell)
+                eval "\$(/home/ubuntu/.pyenv/bin/pyenv "sh-$command" "$@")";;
+            *)
+                command /home/ubuntu/.pyenv/bin/pyenv "$command" "$@";;
+            esac
+        }
+        pyenv shell 3.6.10 3.7.7 3.8.2
         
         python -m venv venv
         source venv/bin/activate
