@@ -4,17 +4,13 @@ def buildAndPublishReleaseFunction = {
     configFileProvider([configFile(fileId: 'PYPIDeployConfiguration', targetLocation: '.pypirc', variable: 'PYPI_SETTINGS')]) {
         sh """#!/bin/bash
         set -e
-        source /home/ubuntu/.bashrc
 
         # prepare environment
-        export PY_36=3.6.10
-        export PY_37=3.7.7
-        export PY_38=3.8.2
-        pyenv install --skip-existing \${PY_36}
-        pyenv install --skip-existing \${PY_37}
-        pyenv install --skip-existing \${PY_38}
+        pyenv install --skip-existing 3.6.10
+        pyenv install --skip-existing 3.7.7
+        pyenv install --skip-existing 3.8.2
         `pyenv init -`
-        pyenv shell \${PY_36} \${PY_37} \${PY_38}
+        pyenv shell 3.6.10 3.7.7 3.8.2
         
         python -m venv venv
         source venv/bin/activate
@@ -48,17 +44,13 @@ def buildAndPublishReleaseFunction = {
 def buildFunction = {
     sh """#!/bin/bash
         set -e
-        source /home/ubuntu/.bashrc
 
         # prepare environment
-        export PY_36=3.6.10
-        export PY_37=3.7.7
-        export PY_38=3.8.2
-        pyenv install --skip-existing \${PY_36}
-        pyenv install --skip-existing \${PY_37}
-        pyenv install --skip-existing \${PY_38}
+        pyenv install --skip-existing 3.6.10
+        pyenv install --skip-existing 3.7.7
+        pyenv install --skip-existing 3.8.2
         `pyenv init -`
-        pyenv shell \${PY_36} \${PY_37} \${PY_38}
+        pyenv shell 3.6.10 3.7.7 3.8.2
         
         python -m venv venv
         source venv/bin/activate
