@@ -27,7 +27,7 @@ def buildAndPublishReleaseFunction = {
         }
         pyenv shell 3.6.10 3.7.7 3.8.2
         
-        python -m venv venv
+        pyenv exec python -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
@@ -83,9 +83,7 @@ def buildFunction = {
         }
         pyenv shell 3.6.10 3.7.7 3.8.2
         
-        echo python --version
-        
-        python -m venv venv
+        pyenv exec python -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
