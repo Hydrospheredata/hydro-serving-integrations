@@ -3,7 +3,7 @@ def repository = 'hydro-serving-integrations'
 def buildAndPublishReleaseFunction = {
     configFileProvider([configFile(fileId: 'PYPIDeployConfiguration', targetLocation: '.pypirc', variable: 'PYPI_SETTINGS')]) {
         sh """#!/bin/bash
-        set -e
+        set -ex
 
         # prepare environment
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
@@ -43,7 +43,7 @@ def buildAndPublishReleaseFunction = {
 
 def buildFunction = {
     sh """#!/bin/bash
-        set -e
+        set -ex
 
         # prepare environment
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
