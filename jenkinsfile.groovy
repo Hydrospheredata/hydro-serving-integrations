@@ -6,11 +6,11 @@ def buildAndPublishReleaseFunction = {
         set -ex
 
         # prepare environment
-        /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
-        /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
-        /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.8.2
+        ~/.pyenv/bin/pyenv install --skip-existing 3.6.10
+        ~/.pyenv/bin/pyenv install --skip-existing 3.7.7
+        ~/.pyenv/bin/pyenv install --skip-existing 3.8.2
         
-        command /home/ubuntu/.pyenv/bin/pyenv rehash 2>/dev/null
+        command ~/.pyenv/bin/pyenv rehash 2>/dev/null
         pyenv() {
             local command
             command="\${1:-}"
@@ -20,9 +20,9 @@ def buildAndPublishReleaseFunction = {
 
             case "\$command" in
             activate|deactivate|rehash|shell)
-                eval "\$(/home/ubuntu/.pyenv/bin/pyenv "sh-$command" "$@")";;
+                eval "\$(~/.pyenv/bin/pyenv "sh-\$command" "\$@")";;
             *)
-                command /home/ubuntu/.pyenv/bin/pyenv "$command" "$@";;
+                command ~/.pyenv/bin/pyenv "\$command" "\$@";;
             esac
         }
         pyenv shell 3.6.10 3.7.7 3.8.2
@@ -62,11 +62,11 @@ def buildFunction = {
 
         echo \$PATH
         # prepare environment
-        /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
-        /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
-        /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.8.2
+        ~/.pyenv/bin/pyenv install --skip-existing 3.6.10
+        ~/.pyenv/bin/pyenv install --skip-existing 3.7.7
+        ~/.pyenv/bin/pyenv install --skip-existing 3.8.2
         
-        command /home/ubuntu/.pyenv/bin/pyenv rehash 2>/dev/null
+        command ~/.pyenv/bin/pyenv rehash 2>/dev/null
         pyenv() {
             local command
             command="\${1:-}"
@@ -76,9 +76,9 @@ def buildFunction = {
 
             case "\$command" in
             activate|deactivate|rehash|shell)
-                eval "\$(/home/ubuntu/.pyenv/bin/pyenv "sh-$command" "$@")";;
+                eval "\$(~/.pyenv/bin/pyenv "sh-\$command" "\$@")";;
             *)
-                command /home/ubuntu/.pyenv/bin/pyenv "$command" "$@";;
+                command ~/.pyenv/bin/pyenv "\$command" "\$@";;
             esac
         }
         pyenv shell 3.6.10 3.7.7 3.8.2
