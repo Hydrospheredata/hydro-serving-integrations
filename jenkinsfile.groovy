@@ -24,6 +24,7 @@ def buildAndPublishReleaseFunction = {
             source venv/bin/activate
             pip install wheel~=0.34.2
             pip install tox~=3.14.5
+            pip install aws-sam-cli~=0.47.0
 
             # run tests for lambda distribution
             # and for hydro-integrations sdk
@@ -73,7 +74,8 @@ def buildFunction = {
             source venv/bin/activate
             pip install wheel~=0.34.2
             pip install tox~=3.14.5
-
+            pip install aws-sam-cli~=0.47.0
+            
             # run tests for lambda distribution
             # and for hydro-integrations sdk
             tox
