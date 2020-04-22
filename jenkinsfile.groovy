@@ -48,6 +48,8 @@ def buildFunction = {
         set -ex
 
         # prepare environment
+        export AWS_REGION=us-west-3
+        
         pyenv install --skip-existing 3.6.10
         pyenv install --skip-existing 3.7.7
         pyenv install --skip-existing 3.8.2
