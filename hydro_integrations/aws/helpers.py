@@ -14,7 +14,7 @@ class SessionMixin:
         if isinstance(session, boto3.Session):
             return session.region_name
         else:
-            return session.get_scoped_config().get('region')
+            return session.get_scoped_config().get('region', '')
 
 
 class AWSClientFactory:

@@ -1,12 +1,11 @@
 import os
-import botocore
+import boto3
 from src.clients import AWSClientFactory
 from src.data import SchemaDescription, ColumnDescription
 
 
-session = botocore.session.get_session()
+session = boto3.session.Session()
 s3_client = AWSClientFactory.get_or_create_client('s3', session)
-
 
 HYDROSPHERE_ENDPOINT = os.environ["HYDROSPHERE_ENDPOINT"]
 MODEL_NAME = "DEMO-xgb-churn-pred-model-monitor-2020-03-11-12-25-04"
