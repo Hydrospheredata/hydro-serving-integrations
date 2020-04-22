@@ -9,7 +9,7 @@ def buildAndPublishReleaseFunction = {
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.8.2
-        eval \$(/home/ubuntu/.pyenv/bin/pyenv init -)
+        eval "\$(/home/ubuntu/.pyenv/bin/pyenv init -)"
         /home/ubuntu/.pyenv/bin/pyenv shell 3.6.10 3.7.7 3.8.2
         
         python -m venv venv
@@ -49,7 +49,7 @@ def buildFunction = {
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.8.2
-        eval \$(/home/ubuntu/.pyenv/bin/pyenv init -)
+        eval "\$(/home/ubuntu/.pyenv/bin/pyenv init -)"
         /home/ubuntu/.pyenv/bin/pyenv shell 3.6.10 3.7.7 3.8.2
         
         python -m venv venv
