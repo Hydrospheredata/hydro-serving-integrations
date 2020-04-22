@@ -3,7 +3,7 @@ def repository = 'hydro-serving-integrations'
 def buildAndPublishReleaseFunction = {
     withCredentials([
         string(credentialsId: 'HydrosphereDevEndpoint', variable: 'HYDROSPHERE_ENDPOINT'),
-        string(credentialsId: 'HydroIntegrationsAWSRegion', variable: 'AWS_REGION'),
+        string(credentialsId: 'HydroIntegrationsAWSRegion', variable: 'AWS_DEFAULT_REGION'),
         string(credentialsId: 'HydroIntegrationsS3DataCaptureBucket', variable: 'S3_DATA_CAPTURE_BUCKET'),
         string(credentialsId: 'HydroIntegrationsS3DataCapturePrefix', variable: 'S3_DATA_CAPTURE_PREFIX'),
         string(credentialsId: 'HydroIntegrationsS3DataTrainingBucket', variable: 'S3_DATA_TRAINING_BUCKET'),
@@ -53,7 +53,7 @@ def buildAndPublishReleaseFunction = {
 def buildFunction = {
     withCredentials([
         string(credentialsId: 'HydrosphereDevEndpoint', variable: 'HYDROSPHERE_ENDPOINT'),
-        string(credentialsId: 'HydroIntegrationsAWSRegion', variable: 'AWS_REGION'),
+        string(credentialsId: 'HydroIntegrationsAWSRegion', variable: 'AWS_DEFAULT_REGION'),
         string(credentialsId: 'HydroIntegrationsS3DataCaptureBucket', variable: 'S3_DATA_CAPTURE_BUCKET'),
         string(credentialsId: 'HydroIntegrationsS3DataCapturePrefix', variable: 'S3_DATA_CAPTURE_PREFIX'),
         string(credentialsId: 'HydroIntegrationsS3DataTrainingBucket', variable: 'S3_DATA_TRAINING_BUCKET'),

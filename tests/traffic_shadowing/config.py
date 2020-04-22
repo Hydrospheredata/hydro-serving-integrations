@@ -10,15 +10,6 @@ CAPTURE_BUCKET = os.environ["S3_DATA_CAPTURE_BUCKET"]
 CAPTURE_PREFIX = os.environ["S3_DATA_CAPTURE_PREFIX"]
 CAPTURE_PREFIX_FULL = f"s3://{CAPTURE_BUCKET}/{CAPTURE_PREFIX}"
 
-print(HYDROSPHERE_ENDPOINT)
-print(TRAIN_BUCKET)
-print(TRAIN_PREFIX)
-print(TRAIN_PREFIX_FULL)
-print(CAPTURE_BUCKET)
-print(CAPTURE_PREFIX)
-print(CAPTURE_PREFIX_FULL)
-print(os.environ.get('AWS_REGION'))
-
 session = botocore.session.get_session()
 s3_client = AWSClientFactory.get_or_create_client('s3', session)
 cloudformation_client = AWSClientFactory.get_or_create_client('cloudformation', session)
