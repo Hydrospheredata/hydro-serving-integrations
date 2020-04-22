@@ -5,6 +5,7 @@ def buildAndPublishReleaseFunction = {
         sh """#!/bin/bash
         set -ex
 
+        echo \$PATH
         # prepare environment
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
@@ -45,6 +46,7 @@ def buildFunction = {
     sh """#!/bin/bash
         set -ex
 
+        echo \$PATH
         # prepare environment
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.6.10
         /home/ubuntu/.pyenv/bin/pyenv install --skip-existing 3.7.7
