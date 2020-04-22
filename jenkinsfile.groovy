@@ -13,11 +13,6 @@ def buildAndPublishReleaseFunction = {
             sh """#!/bin/bash
             set -ex
 
-            touch testfile
-            echo "\$S3_DATA_CAPTURE_BUCKET" >> testfile
-            echo "\$S3_DATA_CAPTURE_PREFIX" >> testfile
-            cat testfile
-
             # prepare environment
             pyenv install --skip-existing 3.6.10
             pyenv install --skip-existing 3.7.7
@@ -66,11 +61,6 @@ def buildFunction = {
     ]) {
         sh """#!/bin/bash
             set -ex
-
-            touch testfile
-            echo "\$S3_DATA_CAPTURE_BUCKET" >> testfile
-            echo "\$S3_DATA_CAPTURE_PREFIX" >> testfile
-            cat testfile
 
             # prepare environment
             pyenv install --skip-existing 3.6.10
