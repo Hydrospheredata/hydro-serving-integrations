@@ -5,6 +5,7 @@ def buildAndPublishReleaseFunction = {
         sh """#!/bin/bash
         set -ex
 
+        echo \$PATH
         # prepare environment
         export AWS_REGION=us-west-3
 
@@ -62,9 +63,10 @@ def buildFunction = {
     sh """#!/bin/bash
         set -ex
 
+        echo \$PATH
         # prepare environment
         export AWS_REGION=us-west-3
-        
+
         ~/.pyenv/bin/pyenv install --skip-existing 3.6.10
         ~/.pyenv/bin/pyenv install --skip-existing 3.7.7
         ~/.pyenv/bin/pyenv install --skip-existing 3.8.2
