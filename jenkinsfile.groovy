@@ -83,6 +83,8 @@ def buildFunction = {
         }
         pyenv shell 3.6.10 3.7.7 3.8.2
         
+        echo python --version
+        
         python -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
