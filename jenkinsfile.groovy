@@ -5,32 +5,16 @@ def buildAndPublishReleaseFunction = {
         sh """#!/bin/bash
         set -ex
 
-        echo \$PATH
         # prepare environment
         export AWS_REGION=us-west-3
 
-        ~/.pyenv/bin/pyenv install --skip-existing 3.6.10
-        ~/.pyenv/bin/pyenv install --skip-existing 3.7.7
-        ~/.pyenv/bin/pyenv install --skip-existing 3.8.2
-        
-        command ~/.pyenv/bin/pyenv rehash 2>/dev/null
-        pyenv() {
-            local command
-            command="\${1:-}"
-            if [ "\$#" -gt 0 ]; then
-                shift
-            fi
-
-            case "\$command" in
-            activate|deactivate|rehash|shell)
-                eval "\$(~/.pyenv/bin/pyenv "sh-\$command" "\$@")";;
-            *)
-                command ~/.pyenv/bin/pyenv "\$command" "\$@";;
-            esac
-        }
+        pyenv install --skip-existing 3.6.10
+        pyenv install --skip-existing 3.7.7
+        pyenv install --skip-existing 3.8.2
+        eval "\$(pyenv init -)"
         pyenv shell 3.6.10 3.7.7 3.8.2
         
-        pyenv exec python -m venv venv
+        python -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
@@ -63,32 +47,14 @@ def buildFunction = {
     sh """#!/bin/bash
         set -ex
 
-        echo \$PATH
         # prepare environment
-        export AWS_REGION=us-west-3
-
-        ~/.pyenv/bin/pyenv install --skip-existing 3.6.10
-        ~/.pyenv/bin/pyenv install --skip-existing 3.7.7
-        ~/.pyenv/bin/pyenv install --skip-existing 3.8.2
-        
-        command ~/.pyenv/bin/pyenv rehash 2>/dev/null
-        pyenv() {
-            local command
-            command="\${1:-}"
-            if [ "\$#" -gt 0 ]; then
-                shift
-            fi
-
-            case "\$command" in
-            activate|deactivate|rehash|shell)
-                eval "\$(~/.pyenv/bin/pyenv "sh-\$command" "\$@")";;
-            *)
-                command ~/.pyenv/bin/pyenv "\$command" "\$@";;
-            esac
-        }
+        pyenv install --skip-existing 3.6.10
+        pyenv install --skip-existing 3.7.7
+        pyenv install --skip-existing 3.8.2
+        eval "\$(pyenv init -)"
         pyenv shell 3.6.10 3.7.7 3.8.2
         
-        pyenv exec python -m venv venv
+        python -m venv venv
         source venv/bin/activate
         pip install wheel~=0.34.2
         pip install tox~=3.14.5
