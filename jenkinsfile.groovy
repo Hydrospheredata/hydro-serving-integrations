@@ -30,7 +30,7 @@ def buildAndPublishReleaseFunction = {
             tox
 
             # build lambda distribution artifacts
-            cd scrips/aws/traffic_shadowing
+            cd scripts/aws/traffic_shadowing
             ./sam-build.sh
             ./sam-package.sh
             
@@ -80,7 +80,7 @@ def buildFunction = {
 
             # check that lambda distribution
             # can be built
-            cd scrips/aws/traffic_shadowing
+            cd scripts/aws/traffic_shadowing
             ./sam-build.sh
             ./sam-package.sh
             cd ../../../
