@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 set -e 
 
 [ -z "$BUILD_DIR" ] && BUILD_DIR="../../../build/aws/traffic_shadowing"

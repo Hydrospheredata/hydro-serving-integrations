@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 set -e
 
 [ -z "$REGION" ] && REGION="eu-west-3"

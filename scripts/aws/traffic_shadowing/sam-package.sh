@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 [ -z "$REGION" ] && REGION="eu-west-3"
 [ -z "$DIST_DIR" ] && DIST_DIR="../../../dist/aws/traffic_shadowing/"

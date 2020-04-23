@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 [ -z "$S3_DIST_BUCKET" ] && S3_DIST_BUCKET="hydrosphere-integrations"
 
