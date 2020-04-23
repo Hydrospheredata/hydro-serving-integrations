@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e 
+set -ex
 
 [ -z "$SOURCE_DIR" ] && SOURCE_DIR="../../../templates/aws/traffic_shadowing"
 [ -z "$CODE_DIR" ] && CODE_DIR="../../../aws/traffic_shadowing"

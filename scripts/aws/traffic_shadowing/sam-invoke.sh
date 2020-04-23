@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e 
+set -ex
 
 [ -z "$BUILD_DIR" ] && BUILD_DIR="../../../build/aws/traffic_shadowing"
 [ -z "$EVENT_JSON" ] && EVENT_JSON="../../../events/aws/traffic_shadowing/event.json"

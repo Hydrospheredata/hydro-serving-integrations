@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 [ -z "$S3_DIST_BUCKET" ] && S3_DIST_BUCKET="hydrosphere-integrations"
 

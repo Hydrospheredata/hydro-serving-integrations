@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 [ -z "$REGION" ] && REGION="eu-west-3"
 [ -z "$SOURCE_DIR" ] && SOURCE_DIR="../../../templates/aws/traffic_shadowing"
@@ -20,7 +20,7 @@ IFS='/' read -r -a array <<< "$S3_PACKAGE_VERSION_URI"
 S3_APP_DIST_KEY=${S3_APP_DIST_PREFIX%/}/${array[@]: -1:1}
 
 echo "Create version of a cloudformation template"
-version=$(md5 -q ${DIST_DIR%/}/cf-template-$suffix.yaml)
+version=$(md5 ${DIST_DIR%/}/cf-template-$suffix.yaml)
 printf $version > ../../../template_version.txt
 
 
