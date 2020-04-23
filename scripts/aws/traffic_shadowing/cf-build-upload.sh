@@ -19,10 +19,10 @@ S3_PACKAGE_VERSION_URI=$(yq r ${DIST_DIR%/}/sam-template.yaml Resources.TrafficS
 IFS='/' read -r -a array <<< "$S3_PACKAGE_VERSION_URI"
 S3_APP_DIST_KEY=${S3_APP_DIST_PREFIX%/}/${array[@]: -1:1}
 
-echo "Create version of a cloudformation template"
-IFS=' ' read -r -a md5array <<< $(md5 ${DIST_DIR%/}/cf-template-$suffix.yaml)
-version=${md5array[0]}
-printf $version > ../../../template_version.txt
+echo "Create version of a cloudformation/code template"
+IFS=' ' read -r -a md5cf <<< $(md5 ${DIST_DIR%/}/cf-template-$suffix.yaml)
+version=${md5cf[0]}-${array[@]: -1:1}
+printf $version > ../../../hydro_integrations/aws/sagemaker/traffic_shadowing_template_version
 
 
 publish_cf() {

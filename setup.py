@@ -6,21 +6,18 @@ with open("README.md", "r") as file:
 with open("version", "r") as file:
     version = file.read().strip()
 
+print
 setuptools.setup(
     name="hydro_integrations",
     version=version,
-    packages=setuptools.find_packages(),
-
+    packages=setuptools.find_packages(include=["hydro_integrations", "hydro_integrations.*"]),
     install_requires=[
         "boto3>=1.12.30",
         "sagemaker>=1.52.1",
     ],
-
     package_data={
-        "template_version": ["template_version"]
+        'hydro_integrations': ['aws/sagemaker/traffic_shadowing_template_version'],
     },
-    include_package_data=True,
-
     author="Hydrospheredata",
     author_email="info@hydrosphere.io",
     description="HydroSDK integrations",

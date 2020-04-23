@@ -2,6 +2,7 @@ from typing import List, Dict, Iterable, Union
 import hashlib
 import logging
 import urllib.parse
+from pkg_resources import resource_string
 import boto3
 import botocore
 from sagemaker.model_monitor.data_capture_config import DataCaptureConfig
@@ -36,8 +37,10 @@ def append_hash(target: str, to_hash: List[str]) -> str:
 
 def get_template_version() -> str:
     """Read template version from packaged file."""
-    with open("template_version", "r") as file:
-        return file.read().strip()
+    return resource_string(
+        "hydro_integrations", 
+        "aws/sagemaker/traffic_shadowing_template_version"
+    ).decode()
 
 
 def get_region_bucket(region: str) -> str:
