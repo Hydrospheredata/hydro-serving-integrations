@@ -46,6 +46,7 @@ def buildAndPublishReleaseFunction = {
             # publish lambda distribution artifacts
             ./cf-build-upload.sh
             cd ../../../
+            rm -rf dist/
             
             # build hydro-integrations sdk
             pip install -r requirements.txt

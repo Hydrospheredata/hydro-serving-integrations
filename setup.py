@@ -12,8 +12,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=[
-        "boto3==1.12.30",
-        "sagemaker==1.52.1",
+        "boto3>=1.12.30",
+        "sagemaker>=1.52.1",
     ],
 
     package_data={
