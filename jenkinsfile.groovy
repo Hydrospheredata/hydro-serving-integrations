@@ -31,6 +31,7 @@ def buildAndPublishReleaseFunction = {
             pip install wheel~=0.34.2
             pip install tox~=3.14.5
             pip install aws-sam-cli~=0.47.0
+            pip install twine~=3.1.1
 
             # run tests for lambda distribution
             # and for hydro-integrations sdk
