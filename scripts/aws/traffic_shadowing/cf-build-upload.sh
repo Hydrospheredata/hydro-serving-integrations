@@ -20,7 +20,8 @@ IFS='/' read -r -a array <<< "$S3_PACKAGE_VERSION_URI"
 S3_APP_DIST_KEY=${S3_APP_DIST_PREFIX%/}/${array[@]: -1:1}
 
 echo "Create version of a cloudformation template"
-version=$(md5 ${DIST_DIR%/}/cf-template-$suffix.yaml)
+IFS=' ' read -r -a md5array <<< $(md5 ${DIST_DIR%/}/cf-template-$suffix.yaml)
+version=${md5array[0]}
 printf $version > ../../../template_version.txt
 
 
@@ -42,33 +43,33 @@ publish_cf() {
 }
 
 # Europe
-for region in "eu-central-1" "eu-west-1" "eu-west-2" "eu-west-3" "eu-north-1" 
-do  
-    publish_cf $region
-done
+# for region in "eu-central-1" "eu-west-1" "eu-west-2" "eu-west-3" "eu-north-1" 
+# do  
+#     publish_cf $region
+# done
 
-# US
-for region in "us-east-1" "us-east-2" "us-west-1" "us-west-2"
-do  
-    publish_cf $region
-done
+# # US
+# for region in "us-east-1" "us-east-2" "us-west-1" "us-west-2"
+# do  
+#     publish_cf $region
+# done
 
-# Canada
-for region in "ca-central-1"
-do  
-    publish_cf $region
-done
+# # Canada
+# for region in "ca-central-1"
+# do  
+#     publish_cf $region
+# done
 
-# Asia Pacific
-for region in "ap-south-1" "ap-northeast-1" "ap-northeast-2" "ap-southeast-1" "ap-southeast-2" 
-do  
-    publish_cf $region
-done
+# # Asia Pacific
+# for region in "ap-south-1" "ap-northeast-1" "ap-northeast-2" "ap-southeast-1" "ap-southeast-2" 
+# do  
+#     publish_cf $region
+# done
 
-# South America
-for region in "sa-east-1" 
-do  
-    publish_cf $region
-done
+# # South America
+# for region in "sa-east-1" 
+# do  
+#     publish_cf $region
+# done
 
 rm ${DIST_DIR%/}/cf-template-$suffix.yaml
