@@ -1,6 +1,14 @@
 # pylint: disable=missing-class-docstring
 
-class StackNotFound(Exception):
+class NotFound(Exception):
+    pass
+
+
+class StackNotFound(NotFound):
+    pass
+
+
+class StackOutputsNotFound(NotFound):
     pass
 
 

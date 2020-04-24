@@ -1,8 +1,10 @@
 # pylint: disable=missing-class-docstring
+from hydro_integrations.aws.exceptions import NotFound
 
-class DataCaptureConfigException(Exception):
+
+class FunctionNotFound(NotFound):
     pass
 
 
-class FunctionNotFound(Exception):
+class DataCaptureConfigException(Exception):
     pass

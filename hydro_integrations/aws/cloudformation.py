@@ -5,7 +5,7 @@ import boto3
 import botocore
 from hydro_integrations.aws.helpers import SessionMixin, AWSClientFactory
 from hydro_integrations.aws.exceptions import (
-    StackCanNotBeProcessed, StackIsBeingProcessed, StackNotFound
+    StackCanNotBeProcessed, StackIsBeingProcessed, StackNotFound, StackOutputsNotFound
 )
 
 logger = logging.getLogger(__name__)
@@ -162,5 +162,7 @@ class CloudFormation(SessionMixin):
             stack = self._describe_stack()
             if stack is None:
                 raise StackNotFound("Could not retrieve outputs of a nonexisting stack.")
+            elif not stack.get('Outputs'):
+                raise StackOutputsNotFound("Could not retrieve outputs of a stack.")
             self.__stack_outputs = stack['Outputs']
         return self.__stack_outputs

@@ -8,6 +8,38 @@ This repository contains implementations of integrations with AWS Sagemaker.
 $ pip install hydro-integrations
 ```
 
+## Before you start
+
+The following rights are required for deploying TrafficShadowing stack.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "cloudformation:CreateStack",
+                "cloudformation:DeleteStack",
+                "cloudformation:DescribeStacks"
+            ],
+            "Resource": "arn:aws:cloudformation:*:*:stack/*/*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutBucketNotification",
+                "s3:GetBucketNotification",
+                "s3:GetBucketLocation"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
 ## Usage
 
 ```python

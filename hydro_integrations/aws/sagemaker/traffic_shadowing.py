@@ -10,6 +10,7 @@ from hydro_integrations.aws.sagemaker import utils
 from hydro_integrations.aws.sagemaker.exceptions import (
     FunctionNotFound, DataCaptureConfigException
 )
+from hydro_integrations.aws.exceptions import NotFound
 from hydro_integrations.aws.cloudformation import CloudFormation
 from hydro_integrations.aws.helpers import SessionMixin, AWSClientFactory
 
@@ -145,9 +146,12 @@ class TrafficShadowing(CloudFormation, SessionMixin):
 
     def _get_lambda_arn(self) -> dict:
         """Retrieve Arn of the deployed TrafficShadowingFunction Lambda."""
-        return next(filter(
-            lambda x: x['OutputKey'] == 'TrafficShadowingFunctionArn', self.stack_outputs
-        ))['OutputValue']
+        try: 
+            return next(filter(
+                lambda x: x['OutputKey'] == 'TrafficShadowingFunctionArn', self.stack_outputs
+            ))['OutputValue']
+        except KeyError:
+            raise FunctionNotFound
 
     def _get_bucket_notification_configuration(self):
         """Retrieve current notification configuration of the bucket."""
@@ -221,6 +225,9 @@ class TrafficShadowing(CloudFormation, SessionMixin):
                 return None
             else:
                 logger.info("Purging bucket notification configuration.")
+        except NotFound:
+            logger.error("Could not process with notification deletion.")
+            return None
 
         if purge:
             configuration = {}
