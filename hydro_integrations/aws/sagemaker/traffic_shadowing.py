@@ -159,7 +159,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         result = self._s3_client.get_bucket_notification_configuration(
             Bucket=self.s3_data_capture_bucket
         )
-        result.pop('ResponseMetadata')
+        result.pop('ResponseMetadata', None)
         return result
 
     def _add_bucket_notification(self, replace: bool = False):
@@ -221,7 +221,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             Prefix=self.s3_data_capture_prefix,
             MaxKeys=1,
         )
-        if len(result["Contents"]) == 0:
+        if len(result.get("Contents", [])) == 0:
             self._s3_client.put_objects(
                 Body=b'stub',
                 Bucket=self.s3_data_capture_bucket,
@@ -265,7 +265,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             NotificationConfiguration=configuration,
         )
 
-    def deploy_stack(self, replace_notification_configuration: bool = False):
+    def deploy(self, replace_notification_configuration: bool = False):
         """Synchronously deploy the stack and updates notification configurations."""
         if self.data_capture_enabled:
             self._deploy_stack()
@@ -274,7 +274,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         else:
             logger.warning("Data capturing wasn't enabled. Skipping stack deployment.")
 
-    def delete_stack(self, purge_notification_configuration: bool = False):
+    def delete(self, purge_notification_configuration: bool = False):
         """Synchronously delete notification configurations and the stack."""
         self._delete_bucket_notification(purge_notification_configuration)
         self._delete_stack()

@@ -34,7 +34,7 @@ def shadowing():
         )
 
 
-def test_deploy_stack(caplog, shadowing: TrafficShadowing):
+def test_deploy(caplog, shadowing: TrafficShadowing):
     """Test basic stack creation in a clean environment."""
     caplog.set_level(logging.INFO)
     with Stubber(cloudformation_client) as cloudformation_stubber, \
@@ -98,13 +98,13 @@ def test_deploy_stack(caplog, shadowing: TrafficShadowing):
             **put_notification_stub.generate_response(),
         )
 
-        shadowing.deploy_stack()
+        shadowing.deploy()
 
         cloudformation_stubber.assert_no_pending_responses()
         s3_stubber.assert_no_pending_responses()
 
 
-def test_delete_stack(caplog, shadowing: TrafficShadowing):
+def test_delete(caplog, shadowing: TrafficShadowing):
     """Test basic stack deletion."""
     caplog.set_level(logging.INFO)
     with Stubber(cloudformation_client) as cloudformation_stubber, \
@@ -161,7 +161,7 @@ def test_delete_stack(caplog, shadowing: TrafficShadowing):
             **describe_stacks_stub.generate_client_error()
         )
 
-        shadowing.delete_stack()
+        shadowing.delete()
 
         cloudformation_stubber.assert_no_pending_responses()
         s3_stubber.assert_no_pending_responses()

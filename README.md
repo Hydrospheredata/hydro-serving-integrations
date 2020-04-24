@@ -72,7 +72,7 @@ shadowing = TrafficShadowing(
     s3_data_training_uri="s3://bucket/data/training",
     data_capture_config=data_capture_config,
 )
-shadowing.deploy_stack()
+shadowing.deploy()
 ```
 
 ## How it works
