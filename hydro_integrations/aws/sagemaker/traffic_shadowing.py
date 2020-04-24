@@ -172,6 +172,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         else:
             logger.info("Adding bucket notification.")
             configuration = self._get_bucket_notification_configuration()
+            configuration.pop("ResponseMetadata")
             lambda_configurations = configuration.get('LambdaFunctionConfigurations', [])
 
         lambda_arn = self._get_lambda_arn()
@@ -226,7 +227,8 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             else:
                 logger.info("Purging bucket notification configuration.")
         except NotFound:
-            logger.error("Could not process with notification deletion.")
+            logger.warning("Could not process with bucket notification deletion. "
+                           "Skipping this step.")
             return None
 
         if purge:

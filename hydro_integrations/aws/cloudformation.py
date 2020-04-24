@@ -36,26 +36,16 @@ class CloudFormation(SessionMixin):
         self.stack_parameters = stack_parameters
         self.stack_capabilities = stack_capabilities
         self._session = session or boto3.Session()
-        self._cf_client = AWSClientFactory.get_or_create_client('cloudformation', self._session)
+        self._cf_client = AWSClientFactory \
+            .get_or_create_client('cloudformation', self._session)
 
         self.__stack_outputs = None
 
     def _wait(self, name):
         waiter = self._cf_client.get_waiter(name)
-        try:
-            waiter.wait(
-                StackName=self.stack_name,
-            )
-        except botocore.exceptions.WaiterError as error:
-            logger.error(error)
-            events = self._describe_stack_events_short()
-            if events is not None:
-                events.reverse()
-                logger.error("Occurred events during stack life.")
-                logging.error(pprint.pformat(events))
-            else:
-                logger.error("Could not find stack events.")
-            raise StackCanNotBeProcessed from error
+        waiter.wait(
+            StackName=self.stack_name,
+        )
 
     def _create_stack(self):
         """Synchronously create a CloudFormation stack."""
@@ -108,7 +98,7 @@ class CloudFormation(SessionMixin):
                 StackName=self.stack_name,
             )['StackEvents']
         except botocore.exceptions.ClientError:
-            logger.debug("Could not find stack %s", self.stack_name)
+            logger.debug("Could not find the stack %s", self.stack_name)
 
     def _describe_stack_events_short(self) -> Union[List[dict], None]:
         """Describe stack events in shortened form."""
@@ -137,14 +127,10 @@ class CloudFormation(SessionMixin):
         elif state in STACK_CREATION_FAILED:
             logger.error("Current stack is failed to be created. Please, resolve the issue "
                          "and delete the stack first.")
-            events = self._describe_stack_events_short()
-            if events is not None:
-                events.reverse()
-                logger.error(pprint.pformat(events))
-            raise StackCanNotBeProcessed()
+            raise StackCanNotBeProcessed
         elif state in IN_PROGRESS_STATES:
             logger.warning("Stack is currently being processed. Please, wait until stack finishes")
-            raise StackIsBeingProcessed()
+            raise StackIsBeingProcessed
         else:
             raise Exception("Reached unexpected state.")
 
