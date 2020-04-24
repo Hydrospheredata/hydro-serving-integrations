@@ -222,7 +222,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             MaxKeys=1,
         )
         if len(result.get("Contents", [])) == 0:
-            self._s3_client.put_objects(
+            self._s3_client.put_object(
                 Body=b'stub',
                 Bucket=self.s3_data_capture_bucket,
                 Key=os.path.join(self.s3_data_capture_prefix, 'stub'),
