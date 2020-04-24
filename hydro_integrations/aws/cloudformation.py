@@ -144,11 +144,9 @@ class CloudFormation(SessionMixin):
 
     @property
     def stack_outputs(self) -> List[dict]:
-        if self.__stack_outputs is None:
-            stack = self._describe_stack()
-            if stack is None:
-                raise StackNotFound("Could not retrieve outputs of a nonexisting stack.")
-            elif not stack.get('Outputs'):
-                raise StackOutputsNotFound("Could not retrieve outputs of a stack.")
-            self.__stack_outputs = stack['Outputs']
-        return self.__stack_outputs
+        stack = self._describe_stack()
+        if stack is None:
+            raise StackNotFound("Could not retrieve outputs of a nonexisting stack.")
+        elif not stack.get('Outputs'):
+            raise StackOutputsNotFound("Could not retrieve outputs of a stack.")
+        return stack['Outputs']
