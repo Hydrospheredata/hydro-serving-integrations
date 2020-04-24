@@ -158,6 +158,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         result = self._s3_client.get_bucket_notification_configuration(
             Bucket=self.s3_data_capture_bucket
         )
+        result.pop('ResponseMetadata')
         return result
 
     def _add_bucket_notification(self, replace: bool = False):
@@ -172,7 +173,6 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         else:
             logger.info("Adding bucket notification.")
             configuration = self._get_bucket_notification_configuration()
-            configuration.pop("ResponseMetadata")
             lambda_configurations = configuration.get('LambdaFunctionConfigurations', [])
 
         lambda_arn = self._get_lambda_arn()
