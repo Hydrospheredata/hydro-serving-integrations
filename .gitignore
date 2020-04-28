@@ -247,5 +247,4 @@ $RECYCLE.BIN/
 .idea/
 .envrc
 events/
-template_version.txt
 test-report.xml

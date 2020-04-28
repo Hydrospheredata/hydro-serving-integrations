@@ -8,6 +8,61 @@ This repository contains implementations of integrations with AWS Sagemaker.
 $ pip install hydro-integrations
 ```
 
+## Before you start
+
+The following rights are required for deploying traffic-shadowing stack.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "iam:GetRole",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:PassRole",
+                "lambda:CreateFunction",
+                "lambda:DeleteFunction",
+                "lambda:InvokeFunction",
+                "lambda:ListVersionsByFunction",
+                "lambda:GetFunctionConfiguration",
+                "lambda:PutFunctionConcurrency",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
+                "lambda:PublishVersion",
+                "cloudformation:DescribeStacks",
+                "cloudformation:DescribeStackEvents",
+                "cloudformation:CreateStack",
+                "cloudformation:DeleteStack",
+            ],
+            "Resource": [
+                "arn:aws:iam:::role/*",
+                "arn:aws:cloudformation:::stack/*/*",
+                "arn:aws:lambda:::function:*"
+            ]
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutBucketNotification",
+                "s3:CreateBucket",
+                "s3:DeleteBucket"
+                "s3:GetBucketLocation",
+                "s3:GetBucketNotification",
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
 ## Usage
 
 ```python
@@ -40,7 +95,7 @@ shadowing = TrafficShadowing(
     s3_data_training_uri="s3://bucket/data/training",
     data_capture_config=data_capture_config,
 )
-shadowing.deploy_stack()
+shadowing.deploy()
 ```
 
 ## How it works

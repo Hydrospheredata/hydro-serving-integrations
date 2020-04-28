@@ -1,7 +1,9 @@
 from typing import List, Dict, Iterable, Union
+import os
 import hashlib
 import logging
 import urllib.parse
+from pkg_resources import resource_string
 import boto3
 import botocore
 from sagemaker.model_monitor.data_capture_config import DataCaptureConfig
@@ -9,6 +11,7 @@ from hydro_integrations.aws.sagemaker import utils
 from hydro_integrations.aws.sagemaker.exceptions import (
     FunctionNotFound, DataCaptureConfigException
 )
+from hydro_integrations.aws.exceptions import NotFound
 from hydro_integrations.aws.cloudformation import CloudFormation
 from hydro_integrations.aws.helpers import SessionMixin, AWSClientFactory
 
@@ -34,27 +37,24 @@ def append_hash(target: str, to_hash: List[str]) -> str:
     return f"{target}-{hexdigest}"
 
 
-def get_template_version() -> str:
-    """Read template version from packaged file."""
-    with open("template_version", "r") as file:
-        return file.read().strip()
-
-
-def get_region_bucket(region: str) -> str:
-    """Return predefined regional buckets for CF resources."""
-    return "hydrosphere-integrations-{}".format(region)
+def get_template_body() -> str:
+    """Read template from a packaged file."""
+    return resource_string(
+        "hydro_integrations", 
+        "aws/sagemaker/traffic_shadowing/template.yaml"
+    ).decode()
 
 
 class TrafficShadowing(CloudFormation, SessionMixin):
     """ Serverless application to shadow traffic to Hydrosphere. """
     STACK_NAME = "traffic-shadowing-hydrosphere"
-    TEMPLATE_URI = "https://{}.s3.{}.amazonaws.com/cloudformation/traffic_shadowing/{}.yaml"
 
     def __init__(
             self,
             hydrosphere_endpoint: str,
             s3_data_training_uri: str,
             data_capture_config: DataCaptureConfig,
+            validate: bool = True,
             session: Union[boto3.Session, botocore.session.Session, None] = None,
     ):
         self._session = session or boto3.Session()
@@ -65,11 +65,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             raise DataCaptureConfigException(
                 "Data capturing should be configured to capture requests and responses.")
 
-        self.template_url = self.TEMPLATE_URI.format(
-            get_region_bucket(self.get_region()),
-            self.get_region(),
-            get_template_version()
-        )
+        self.template_body = get_template_body()
 
         utils.validate_non_empty_uri(hydrosphere_endpoint, True, True, False)
         self.hydrosphere_endpoint = hydrosphere_endpoint
@@ -83,12 +79,14 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         training_parse = urllib.parse.urlparse(s3_data_training_uri)
         self.s3_data_training_bucket = training_parse.netloc
         self.s3_data_training_prefix = training_parse.path.strip('/')
-        self._validate_deployment_configuration()
+        
+        if validate:
+            self._validate_deployment_configuration()
 
         self.stack_name = append_hash(
             target=self.STACK_NAME,
             to_hash=[
-                self.template_url,
+                self.template_body,
                 hydrosphere_endpoint,
                 s3_data_training_uri,
                 str(data_capture_config._to_request_dict()),
@@ -96,7 +94,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         )
 
         super().__init__(
-            self.template_url,
+            self.template_body,
             self.stack_name,
             self.get_stack_parameters(),
             self.get_stack_capabilities(),
@@ -142,15 +140,20 @@ class TrafficShadowing(CloudFormation, SessionMixin):
 
     def _get_lambda_arn(self) -> dict:
         """Retrieve Arn of the deployed TrafficShadowingFunction Lambda."""
-        return next(filter(
-            lambda x: x['OutputKey'] == 'TrafficShadowingFunctionArn', self.stack_outputs
-        ))['OutputValue']
+        try: 
+            outputs = self._get_stack_outputs()
+            return next(filter(
+                lambda x: x['OutputKey'] == 'TrafficShadowingFunctionArn', outputs
+            ))['OutputValue']
+        except KeyError:
+            raise FunctionNotFound
 
     def _get_bucket_notification_configuration(self):
         """Retrieve current notification configuration of the bucket."""
         result = self._s3_client.get_bucket_notification_configuration(
             Bucket=self.s3_data_capture_bucket
         )
+        result.pop('ResponseMetadata', None)
         return result
 
     def _add_bucket_notification(self, replace: bool = False):
@@ -176,7 +179,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             return logger.info("Found similar bucket notification configuration.")
 
         lambda_configurations.append({
-            'LambdaFunctionArn': self._get_lambda_arn(),
+            'LambdaFunctionArn': lambda_arn,
             'Events': [
                 's3:ObjectCreated:*'
             ],
@@ -218,6 +221,10 @@ class TrafficShadowing(CloudFormation, SessionMixin):
                 return None
             else:
                 logger.info("Purging bucket notification configuration.")
+        except NotFound:
+            logger.warning("Could not process with bucket notification deletion. "
+                           "Skipping this step.")
+            return None
 
         if purge:
             configuration = {}
@@ -235,15 +242,18 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             NotificationConfiguration=configuration,
         )
 
-    def deploy_stack(self, replace_notification_configuration: bool = False):
+    def deploy(self, replace_bucket_notification_configuration: bool = False, request_payer: str = 'requester'):
         """Synchronously deploy the stack and updates notification configurations."""
+        if request_payer != 'requester':
+            raise ValueError('To download a cloudformation template request_payer value '
+                             'should be set to "requester".')
         if self.data_capture_enabled:
             self._deploy_stack()
-            self._add_bucket_notification(replace_notification_configuration)
+            self._add_bucket_notification(replace_bucket_notification_configuration)
         else:
             logger.warning("Data capturing wasn't enabled. Skipping stack deployment.")
 
-    def delete_stack(self, purge_notification_configuration: bool = False):
+    def delete(self, purge_bucket_notification_configuration: bool = False):
         """Synchronously delete notification configurations and the stack."""
-        self._delete_bucket_notification(purge_notification_configuration)
+        self._delete_bucket_notification(purge_bucket_notification_configuration)
         self._delete_stack()

@@ -19,9 +19,6 @@ from tests.traffic_shadowing.config import session, s3_client, cloudformation_cl
 @pytest.fixture
 def shadowing():
     with Stubber(s3_client) as s3_stubber:
-        s3_stubber.add_response(
-            **GetBucketLocationStub(CAPTURE_BUCKET).generate_response()
-        )
         data_capture_config = DataCaptureConfig(
             enable_capture=True,
             destination_s3_uri=CAPTURE_PREFIX_FULL,
@@ -30,11 +27,12 @@ def shadowing():
             HYDROSPHERE_ENDPOINT,
             TRAIN_PREFIX_FULL,
             data_capture_config,
-            session,
+            validate=False,
+            session=session,
         )
 
 
-def test_deploy_stack(caplog, shadowing: TrafficShadowing):
+def test_deploy(caplog, shadowing: TrafficShadowing):
     """Test basic stack creation in a clean environment."""
     caplog.set_level(logging.INFO)
     with Stubber(cloudformation_client) as cloudformation_stubber, \
@@ -45,7 +43,7 @@ def test_deploy_stack(caplog, shadowing: TrafficShadowing):
             shadowing.stack_name,
             shadowing.get_stack_parameters(),
             shadowing.get_stack_capabilities(),
-            shadowing.stack_url,
+            shadowing.stack_body,
         )
         describe_stacks_stub = DescribeStacksStub \
             .from_stub(create_stack_stub)
@@ -98,13 +96,13 @@ def test_deploy_stack(caplog, shadowing: TrafficShadowing):
             **put_notification_stub.generate_response(),
         )
 
-        shadowing.deploy_stack()
+        shadowing.deploy()
 
         cloudformation_stubber.assert_no_pending_responses()
         s3_stubber.assert_no_pending_responses()
 
 
-def test_delete_stack(caplog, shadowing: TrafficShadowing):
+def test_delete(caplog, shadowing: TrafficShadowing):
     """Test basic stack deletion."""
     caplog.set_level(logging.INFO)
     with Stubber(cloudformation_client) as cloudformation_stubber, \
@@ -115,7 +113,7 @@ def test_delete_stack(caplog, shadowing: TrafficShadowing):
             shadowing.stack_name,
             shadowing.get_stack_parameters(),
             shadowing.get_stack_capabilities(),
-            shadowing.stack_url,
+            shadowing.stack_body,
         )
         delete_stack_stub = DeleteStackStub(
             shadowing.stack_name,
@@ -161,7 +159,7 @@ def test_delete_stack(caplog, shadowing: TrafficShadowing):
             **describe_stacks_stub.generate_client_error()
         )
 
-        shadowing.delete_stack()
+        shadowing.delete()
 
         cloudformation_stubber.assert_no_pending_responses()
         s3_stubber.assert_no_pending_responses()

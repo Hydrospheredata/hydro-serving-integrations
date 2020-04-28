@@ -1,7 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  CloudFormation template to deploy resources for shadowing traffic 
-  from SageMaker Model Endpoint to Hydrosphere instance.
+  CloudFormation template to deploy resources for shadowing traffic  from SageMaker
+  Model Endpoint to Hydrosphere instance.
+
 Parameters:
   S3DataCaptureBucketName:
     Type: String
@@ -41,7 +42,7 @@ Resources:
           Version: '2012-10-17'
           Statement:
           - Effect: Allow
-            Action: 
+            Action:
             - s3:*
             Resource: '*'
           - Effect: Allow
@@ -56,10 +57,10 @@ Resources:
       ServiceToken: !GetAtt CopyZipsFunction.Arn
       DestRegion: !Ref AWS::Region
       DestBucket: !Ref LambdaZipsBucket
-      SourceBucket: REPLACE::DistributionBucket
+      SourceBucket: hydrosphere-integrations-eu-west-3
       Prefix: ""
       Objects:
-        - REPLACE::DistributionKey
+      - lambda/traffic_shadowing/1a46812f177b62fc77b02818f04c0ff4
   CopyZipsFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -127,7 +128,7 @@ Resources:
         production data for analysis.
       Code:
         S3Bucket: !Ref LambdaZipsBucket
-        S3Key: REPLACE::DistributionKey
+        S3Key: lambda/traffic_shadowing/1a46812f177b62fc77b02818f04c0ff4
       Timeout: 240
       MemorySize: 256
       Runtime: python3.7
@@ -143,7 +144,7 @@ Resources:
       ReservedConcurrentExecutions: 3
   TrafficShadowingVersion:
     Type: AWS::Lambda::Version
-    Properties: 
+    Properties:
       FunctionName: !Ref TrafficShadowingFunction
 Outputs:
   TrafficShadowingFunctionArn:
