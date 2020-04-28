@@ -48,7 +48,6 @@ def get_template_body() -> str:
 class TrafficShadowing(CloudFormation, SessionMixin):
     """ Serverless application to shadow traffic to Hydrosphere. """
     STACK_NAME = "traffic-shadowing-hydrosphere"
-    TEMPLATE_URI = "https://hydrosphere-integratinos-eu-west-3.s3.eu-west-3.amazonaws.com/cloudformation/traffic_shadowing/{}.yaml"
 
     def __init__(
             self,
