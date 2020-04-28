@@ -211,23 +211,6 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             NotificationConfiguration=configuration
         )
 
-    def _update_notification_destination(self):
-        """
-        Place small file under specified data-capture prefix to be able
-        to put notification configuration for a lambda function. 
-        """
-        result = self._s3_client.list_objects_v2(
-            Bucket=self.s3_data_capture_bucket, 
-            Prefix=self.s3_data_capture_prefix,
-            MaxKeys=1,
-        )
-        if len(result.get("Contents", [])) == 0:
-            self._s3_client.put_object(
-                Body=b'stub',
-                Bucket=self.s3_data_capture_bucket,
-                Key=os.path.join(self.s3_data_capture_prefix, 'stub'),
-            )
-
     def _delete_bucket_notification(self, purge: bool = False):
         """
         Delete lambda notification from the existing notification
@@ -265,11 +248,13 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             NotificationConfiguration=configuration,
         )
 
-    def deploy(self, replace_notification_configuration: bool = False):
+    def deploy(self, replace_notification_configuration: bool = False, request_payer: str = 'requester'):
         """Synchronously deploy the stack and updates notification configurations."""
+        if request_payer != 'requester':
+            raise ValueError('To download a cloudformation template request_payer value '
+                             'should be set to "requester".')
         if self.data_capture_enabled:
             self._deploy_stack()
-            self._update_notification_destination()
             self._add_bucket_notification(replace_notification_configuration)
         else:
             logger.warning("Data capturing wasn't enabled. Skipping stack deployment.")

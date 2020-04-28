@@ -359,3 +359,30 @@ class PutEmptyNotificationStub(StubBase):
     @property
     def service_response(self):
         return {}
+
+
+class ListObjectsV2EmptyStub(StubBase):
+    method = 'list_objects_v2'
+
+    def __init__(self, bucket: str, prefix: str):
+        self.bucket = bucket
+        self.prefix = prefix
+
+    @property
+    def expected_params(self) -> dict:
+        return {
+            "Bucket": self.bucket,
+            "Prefix": self.prefix,
+        }
+
+    @property
+    def service_response(self) -> dict:
+        return {
+            'IsTruncated': False,
+            'Name': self.bucket,
+            'Prefix': self.prefix,
+            'MaxKeys': 1000,
+            'EncodingType': 'url',
+            'KeyCount': 0,
+        }
+
