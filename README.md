@@ -10,7 +10,7 @@ $ pip install hydro-integrations
 
 ## Before you start
 
-The following rights are required for deploying TrafficShadowing stack.
+The following rights are required for deploying traffic-shadowing stack.
 
 ```json
 {
@@ -20,19 +20,42 @@ The following rights are required for deploying TrafficShadowing stack.
             "Sid": "VisualEditor0",
             "Effect": "Allow",
             "Action": [
+                "iam:GetRole",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:PassRole",
+                "lambda:CreateFunction",
+                "lambda:DeleteFunction",
+                "lambda:InvokeFunction",
+                "lambda:ListVersionsByFunction",
+                "lambda:GetFunctionConfiguration",
+                "lambda:PutFunctionConcurrency",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
+                "lambda:PublishVersion",
+                "cloudformation:DescribeStacks",
+                "cloudformation:DescribeStackEvents",
                 "cloudformation:CreateStack",
                 "cloudformation:DeleteStack",
-                "cloudformation:DescribeStacks"
             ],
-            "Resource": "arn:aws:cloudformation:*:*:stack/*/*"
+            "Resource": [
+                "arn:aws:iam:::role/*",
+                "arn:aws:cloudformation:::stack/*/*",
+                "arn:aws:lambda:::function:*"
+            ]
         },
         {
             "Sid": "VisualEditor1",
             "Effect": "Allow",
             "Action": [
                 "s3:PutBucketNotification",
+                "s3:CreateBucket",
+                "s3:DeleteBucket"
+                "s3:GetBucketLocation",
                 "s3:GetBucketNotification",
-                "s3:GetBucketLocation"
             ],
             "Resource": "*"
         }
