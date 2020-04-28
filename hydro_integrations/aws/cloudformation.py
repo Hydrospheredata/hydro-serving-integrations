@@ -25,21 +25,19 @@ class CloudFormation(SessionMixin):
     """Base object for interacting with CloudFormation API."""
     def __init__(
             self,
-            stack_url: str,
+            stack_body: str,
             stack_name: str,
             stack_parameters: List[Dict[str, str]],
             stack_capabilities: List[str],
             session: boto3.Session,
     ):
-        self.stack_url = stack_url
+        self.stack_body = stack_body
         self.stack_name = stack_name
         self.stack_parameters = stack_parameters
         self.stack_capabilities = stack_capabilities
         self._session = session or boto3.Session()
         self._cf_client = AWSClientFactory \
             .get_or_create_client('cloudformation', self._session)
-
-        self.__stack_outputs = None
 
     def _wait(self, name):
         waiter = self._cf_client.get_waiter(name)
@@ -51,7 +49,7 @@ class CloudFormation(SessionMixin):
         """Synchronously create a CloudFormation stack."""
         self._cf_client.create_stack(
             StackName=self.stack_name,
-            TemplateURL=self.stack_url,
+            TemplateBody=self.stack_body,
             Parameters=self.stack_parameters,
             Capabilities=self.stack_capabilities,
         )
@@ -62,7 +60,7 @@ class CloudFormation(SessionMixin):
         try:
             self._cf_client.update_stack(
                 StackName=self.stack_name,
-                TemplateURL=self.stack_url,
+                TemplateBody=self.stack_body,
                 Parameters=self.stack_parameters,
                 Capabilities=self.stack_capabilities,
             )
@@ -142,8 +140,7 @@ class CloudFormation(SessionMixin):
         )
         self._wait('stack_delete_complete')
 
-    @property
-    def stack_outputs(self) -> List[dict]:
+    def _get_stack_outputs(self) -> List[dict]:
         stack = self._describe_stack()
         if stack is None:
             raise StackNotFound("Could not retrieve outputs of a nonexisting stack.")

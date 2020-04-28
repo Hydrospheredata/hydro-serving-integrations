@@ -16,7 +16,9 @@ setuptools.setup(
         "sagemaker>=1.52.1",
     ],
     package_data={
-        'hydro_integrations': ['aws/sagemaker/traffic_shadowing_template_version'],
+        'hydro_integrations': [
+            'aws/sagemaker/traffic_shadowing/template.yaml',
+        ],
     },
     author="Hydrospheredata",
     author_email="info@hydrosphere.io",

@@ -16,9 +16,6 @@ from tests.traffic_shadowing.config import session, s3_client, cloudformation_cl
 @pytest.fixture
 def shadowing():
     with Stubber(s3_client) as s3_stubber:
-        s3_stubber.add_response(
-            **GetBucketLocationStub(CAPTURE_BUCKET).generate_response()
-        )
         data_capture_config = DataCaptureConfig(
             enable_capture=True,
             destination_s3_uri=CAPTURE_PREFIX_FULL,
@@ -27,7 +24,8 @@ def shadowing():
             HYDROSPHERE_ENDPOINT,
             TRAIN_PREFIX_FULL,
             data_capture_config,
-            session,
+            validate=False,
+            session=session,
         )
 
 
@@ -42,7 +40,7 @@ def test_replace_notification(caplog, shadowing: TrafficShadowing):
             shadowing.stack_name,
             shadowing.get_stack_parameters(),
             shadowing.get_stack_capabilities(),
-            shadowing.stack_url,
+            shadowing.stack_body,
         )
 
         # s3 stubs
@@ -81,7 +79,7 @@ def test_purge_notification(caplog, shadowing: TrafficShadowing):
             shadowing.stack_name,
             shadowing.get_stack_parameters(),
             shadowing.get_stack_capabilities(),
-            shadowing.stack_url,
+            shadowing.stack_body,
         )
 
         # s3 stubs

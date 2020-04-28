@@ -37,29 +37,25 @@ def append_hash(target: str, to_hash: List[str]) -> str:
     return f"{target}-{hexdigest}"
 
 
-def get_template_version() -> str:
-    """Read template version from packaged file."""
+def get_template_body() -> str:
+    """Read template from a packaged file."""
     return resource_string(
         "hydro_integrations", 
-        "aws/sagemaker/traffic_shadowing_template_version"
+        "aws/sagemaker/traffic_shadowing/template.yaml"
     ).decode()
-
-
-def get_region_bucket(region: str) -> str:
-    """Return predefined regional buckets for CF resources."""
-    return "hydrosphere-integrations-{}".format(region)
 
 
 class TrafficShadowing(CloudFormation, SessionMixin):
     """ Serverless application to shadow traffic to Hydrosphere. """
     STACK_NAME = "traffic-shadowing-hydrosphere"
-    TEMPLATE_URI = "https://{}.s3.{}.amazonaws.com/cloudformation/traffic_shadowing/{}.yaml"
+    TEMPLATE_URI = "https://hydrosphere-integratinos-eu-west-3.s3.eu-west-3.amazonaws.com/cloudformation/traffic_shadowing/{}.yaml"
 
     def __init__(
             self,
             hydrosphere_endpoint: str,
             s3_data_training_uri: str,
             data_capture_config: DataCaptureConfig,
+            validate: bool = True,
             session: Union[boto3.Session, botocore.session.Session, None] = None,
     ):
         self._session = session or boto3.Session()
@@ -70,11 +66,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             raise DataCaptureConfigException(
                 "Data capturing should be configured to capture requests and responses.")
 
-        self.template_url = self.TEMPLATE_URI.format(
-            get_region_bucket(self.get_region()),
-            self.get_region(),
-            get_template_version()
-        )
+        self.template_body = get_template_body()
 
         utils.validate_non_empty_uri(hydrosphere_endpoint, True, True, False)
         self.hydrosphere_endpoint = hydrosphere_endpoint
@@ -88,12 +80,14 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         training_parse = urllib.parse.urlparse(s3_data_training_uri)
         self.s3_data_training_bucket = training_parse.netloc
         self.s3_data_training_prefix = training_parse.path.strip('/')
-        self._validate_deployment_configuration()
+        
+        if validate:
+            self._validate_deployment_configuration()
 
         self.stack_name = append_hash(
             target=self.STACK_NAME,
             to_hash=[
-                self.template_url,
+                self.template_body,
                 hydrosphere_endpoint,
                 s3_data_training_uri,
                 str(data_capture_config._to_request_dict()),
@@ -101,7 +95,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
         )
 
         super().__init__(
-            self.template_url,
+            self.template_body,
             self.stack_name,
             self.get_stack_parameters(),
             self.get_stack_capabilities(),
@@ -148,8 +142,9 @@ class TrafficShadowing(CloudFormation, SessionMixin):
     def _get_lambda_arn(self) -> dict:
         """Retrieve Arn of the deployed TrafficShadowingFunction Lambda."""
         try: 
+            outputs = self._get_stack_outputs()
             return next(filter(
-                lambda x: x['OutputKey'] == 'TrafficShadowingFunctionArn', self.stack_outputs
+                lambda x: x['OutputKey'] == 'TrafficShadowingFunctionArn', outputs
             ))['OutputValue']
         except KeyError:
             raise FunctionNotFound
@@ -185,7 +180,7 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             return logger.info("Found similar bucket notification configuration.")
 
         lambda_configurations.append({
-            'LambdaFunctionArn': self._get_lambda_arn(),
+            'LambdaFunctionArn': lambda_arn,
             'Events': [
                 's3:ObjectCreated:*'
             ],

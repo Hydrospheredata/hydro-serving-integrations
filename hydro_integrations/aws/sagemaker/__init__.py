@@ -1,1 +1,1 @@
-from hydro_integrations.aws.sagemaker.traffic_shadowing import TrafficShadowing
+from hydro_integrations.aws.sagemaker.traffic_shadowing.traffic_shadowing import TrafficShadowing

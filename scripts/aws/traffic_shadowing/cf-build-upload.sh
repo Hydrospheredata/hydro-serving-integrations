@@ -19,20 +19,12 @@ S3_PACKAGE_VERSION_URI=$(yq r ${DIST_DIR%/}/sam-template.yaml Resources.TrafficS
 IFS='/' read -r -a array <<< "$S3_PACKAGE_VERSION_URI"
 S3_APP_DIST_KEY=${S3_APP_DIST_PREFIX%/}/${array[@]: -1:1}
 
-# Create version of a cloudformation/code template
-IFS=' ' read -r -a md5cf <<< $(md5 -q ${DIST_DIR%/}/cf-template-$suffix.yaml)
-version=${md5cf[0]}-${array[@]: -1:1}
-printf $version > ../../../hydro_integrations/aws/sagemaker/traffic_shadowing_template_version
-
 # Update S3 destination of the function in the cloudformation template
-bucket=${S3_DIST_BUCKET%/}-$1
-yq w ${DIST_DIR%/}/cf-template-$suffix.yaml -i 'Resources.CopyZips.Properties.SourceBucket' $bucket
+SOURCE_BUCKET=${S3_DIST_BUCKET%/}-$1
+yq w ${DIST_DIR%/}/cf-template-$suffix.yaml -i 'Resources.CopyZips.Properties.SourceBucket' $SOURCE_BUCKET
 yq w ${DIST_DIR%/}/cf-template-$suffix.yaml -i 'Resources.CopyZips.Properties.Objects[0]' $S3_APP_DIST_KEY
 yq w ${DIST_DIR%/}/cf-template-$suffix.yaml -i 'Resources.TrafficShadowingFunction.Properties.Code.S3Key' $S3_APP_DIST_KEY
 aws cloudformation validate-template --template-body file://${DIST_DIR%/}/cf-template-$suffix.yaml > /dev/null
-cp ${DIST_DIR%/}/cf-template-$suffix.yaml ${DIST_DIR%/}/cf-$version.yaml
-
-# Upload result cloudformation script to distribution bucket
-aws s3 cp ${DIST_DIR%/}/cf-$version.yaml s3://$bucket/${S3_CF_DIST_PREFIX%/}/$version.yaml
+cp ${DIST_DIR%/}/cf-template-$suffix.yaml ../../../hydro_integrations/aws/sagemaker/traffic_shadowing/template.yaml
 
 rm ${DIST_DIR%/}/cf-template-$suffix.yaml

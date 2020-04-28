@@ -18,18 +18,18 @@ class CreateStackStub(StubBase):
             stack_name: str,
             stack_parameters: List[dict],
             stack_capabilities: List[str],
-            template_url: str
+            template_body: str
     ):
         self.stack_name = stack_name
         self.stack_parameters = stack_parameters
         self.stack_capabilities = stack_capabilities
-        self.template_url = template_url
+        self.template_body = template_body
 
     @property
     def expected_params(self):
         return {
             "StackName": self.stack_name,
-            "TemplateURL": self.template_url,
+            "TemplateBody": self.template_body,
             "Parameters": self.stack_parameters,
             "Capabilities": self.stack_capabilities,
         }
@@ -49,12 +49,12 @@ class DescribeStacksStub(StubBase):
             stack_name: str,
             stack_parameters: List[dict],
             stack_capabilities: List[str],
-            template_url: str,
+            template_body: str,
     ):
         self.stack_name = stack_name
         self.stack_parameters = stack_parameters
         self.stack_capabilities = stack_capabilities
-        self.template_url = template_url
+        self.template_body = template_body
 
         self.__lambda_arn = None
 
@@ -70,7 +70,7 @@ class DescribeStacksStub(StubBase):
             stub.stack_name,
             stub.stack_parameters,
             stub.stack_capabilities,
-            stub.template_url,
+            stub.template_body,
         )
 
     @property
