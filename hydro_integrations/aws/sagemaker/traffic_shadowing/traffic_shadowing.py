@@ -242,18 +242,18 @@ class TrafficShadowing(CloudFormation, SessionMixin):
             NotificationConfiguration=configuration,
         )
 
-    def deploy(self, replace_notification_configuration: bool = False, request_payer: str = 'requester'):
+    def deploy(self, replace_bucket_notification_configuration: bool = False, request_payer: str = 'requester'):
         """Synchronously deploy the stack and updates notification configurations."""
         if request_payer != 'requester':
             raise ValueError('To download a cloudformation template request_payer value '
                              'should be set to "requester".')
         if self.data_capture_enabled:
             self._deploy_stack()
-            self._add_bucket_notification(replace_notification_configuration)
+            self._add_bucket_notification(replace_bucket_notification_configuration)
         else:
             logger.warning("Data capturing wasn't enabled. Skipping stack deployment.")
 
-    def delete(self, purge_notification_configuration: bool = False):
+    def delete(self, purge_bucket_notification_configuration: bool = False):
         """Synchronously delete notification configurations and the stack."""
-        self._delete_bucket_notification(purge_notification_configuration)
+        self._delete_bucket_notification(purge_bucket_notification_configuration)
         self._delete_stack()
