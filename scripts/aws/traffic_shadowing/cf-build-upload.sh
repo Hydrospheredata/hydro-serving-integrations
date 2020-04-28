@@ -20,7 +20,7 @@ IFS='/' read -r -a array <<< "$S3_PACKAGE_VERSION_URI"
 S3_APP_DIST_KEY=${S3_APP_DIST_PREFIX%/}/${array[@]: -1:1}
 
 # Update S3 destination of the function in the cloudformation template
-SOURCE_BUCKET=${S3_DIST_BUCKET%/}-$1
+SOURCE_BUCKET=${S3_DIST_BUCKET%/}-eu-west-3
 yq w ${DIST_DIR%/}/cf-template-$suffix.yaml -i 'Resources.CopyZips.Properties.SourceBucket' $SOURCE_BUCKET
 yq w ${DIST_DIR%/}/cf-template-$suffix.yaml -i 'Resources.CopyZips.Properties.Objects[0]' $S3_APP_DIST_KEY
 yq w ${DIST_DIR%/}/cf-template-$suffix.yaml -i 'Resources.TrafficShadowingFunction.Properties.Code.S3Key' $S3_APP_DIST_KEY

@@ -57,7 +57,7 @@ Resources:
       ServiceToken: !GetAtt CopyZipsFunction.Arn
       DestRegion: !Ref AWS::Region
       DestBucket: !Ref LambdaZipsBucket
-      SourceBucket: hydrosphere-integrations-
+      SourceBucket: hydrosphere-integrations-eu-west-3
       Prefix: ""
       Objects:
       - lambda/traffic_shadowing/1a46812f177b62fc77b02818f04c0ff4
