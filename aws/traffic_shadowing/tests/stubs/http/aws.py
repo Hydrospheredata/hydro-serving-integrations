@@ -36,9 +36,9 @@ class ListObjectsV2Stub(StubBase):
                     'content-type': 'application/xml', 
                     'transfer-encoding': 'chunked', 
                     'server': 'AmazonS3'
-                }, 
+                },
+                'RetryAttempts': 1,
             },
-            'RetryAttempts': 1,
             'IsTruncated': False,
             'Contents': [
                 {
