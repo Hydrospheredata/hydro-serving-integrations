@@ -20,31 +20,31 @@ The following rights are required for deploying traffic-shadowing stack.
             "Sid": "VisualEditor0",
             "Effect": "Allow",
             "Action": [
-                "iam:GetRole",
-                "iam:CreateRole",
-                "iam:DeleteRole",
-                "iam:GetRolePolicy",
-                "iam:PutRolePolicy",
-                "iam:DeleteRolePolicy",
-                "iam:PassRole",
                 "lambda:CreateFunction",
-                "lambda:DeleteFunction",
+                "iam:GetRole",
                 "lambda:InvokeFunction",
                 "lambda:ListVersionsByFunction",
+                "iam:CreateRole",
+                "iam:DeleteRole",
                 "lambda:GetFunctionConfiguration",
-                "lambda:PutFunctionConcurrency",
-                "lambda:AddPermission",
-                "lambda:RemovePermission"
-                "lambda:PublishVersion",
+                "iam:PutRolePolicy",
                 "cloudformation:DescribeStacks",
+                "lambda:PutFunctionConcurrency",
+                "iam:PassRole",
                 "cloudformation:DescribeStackEvents",
+                "lambda:AddPermission",
                 "cloudformation:CreateStack",
+                "iam:DeleteRolePolicy",
                 "cloudformation:DeleteStack",
+                "lambda:DeleteFunction",
+                "lambda:PublishVersion",
+                "lambda:RemovePermission",
+                "iam:GetRolePolicy"
             ],
             "Resource": [
-                "arn:aws:iam:::role/*",
-                "arn:aws:cloudformation:::stack/*/*",
-                "arn:aws:lambda:::function:*"
+                "arn:aws:cloudformation:*:*:stack/*/*",
+                "arn:aws:lambda:*:*:function:*",
+                "arn:aws:iam::*:role/*"
             ]
         },
         {
@@ -53,9 +53,10 @@ The following rights are required for deploying traffic-shadowing stack.
             "Action": [
                 "s3:PutBucketNotification",
                 "s3:CreateBucket",
-                "s3:DeleteBucket"
-                "s3:GetBucketLocation",
                 "s3:GetBucketNotification",
+                "s3:GetBucketLocation",
+                "s3:DeleteBucket",
+                "s3:GetObject"
             ],
             "Resource": "*"
         }
