@@ -110,10 +110,15 @@ class S3Utils:
         """Parse largest csv file from bucket/prefix."""
         path = '/'.join([prefix, model_name])
         response = self._s3_client.list_objects_v2(Bucket=bucket, Prefix=path)
-        candidates = list(filter(
-            lambda x: os.path.splitext(x['Key'])[1].lower() == '.csv',
-            response.get('Contents')
-        ))
+        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+            logger.error(response)
+            raise ValueError(f"Could not list objects from s3://{bucket}/{path}")
+        candidates = []
+        if response['KeyCount'] > 0:
+            candidates = list(filter(
+                lambda x: os.path.splitext(x['Key'])[1].lower() == '.csv',
+                response['Contents']
+            ))
         if not candidates:
             raise errors.DataNotFound(f'Didn\'t find .csv training data under "{path}" path')
         candidates.sort(key=lambda x: x['Size'], reverse=True)

@@ -24,6 +24,21 @@ class ListObjectsV2Stub(StubBase):
     @property
     def service_response(self) -> dict:
         return {
+            'ResponseMetadata': {
+                'RequestId': 'xxxxxxxxxxxxxxxx', 
+                'HostId': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 
+                'HTTPStatusCode': 200, 
+                'HTTPHeaders': {
+                    'x-amz-id-2': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 
+                    'x-amz-request-id': 'xxxxxxxxxxxxxxxx', 
+                    'date': 'Wed, 20 May 2020 11:38:02 GMT', 
+                    'x-amz-bucket-region': 'eu-west-3', 
+                    'content-type': 'application/xml', 
+                    'transfer-encoding': 'chunked', 
+                    'server': 'AmazonS3'
+                },
+                'RetryAttempts': 1,
+            },
             'IsTruncated': False,
             'Contents': [
                 {
@@ -40,7 +55,6 @@ class ListObjectsV2Stub(StubBase):
             'EncodingType': 'url',
             'KeyCount': 1
         }
-
 
 class GetObjectStub(StubBase):
     method = 'get_object'
