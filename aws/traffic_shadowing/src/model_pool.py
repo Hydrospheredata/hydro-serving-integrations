@@ -157,7 +157,7 @@ class ModelPool:
             if status in (DataProfileStatus.Success, DataProfileStatus.Processing): 
                 # Don't wait until all data gets processed, release immediately
                 break 
-            elif status in (DataProfileStatus.NotRegistered):
+            elif status == DataProfileStatus.NotRegistered:
                 # If profile hasn't been registered yet, wait for a little more
                 if tick(): 
                     continue
