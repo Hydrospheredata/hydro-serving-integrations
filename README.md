@@ -10,7 +10,7 @@ $ pip install hydro-integrations
 
 ## Before you start
 
-The following rights are required for deploying traffic-shadowing stack.
+To create shadowing resources we utilize CloudFormation templates. To proceed with the stack creation, make sure that you have the following rights on your AWS IAM user/role. 
 
 ```json
 {
@@ -34,6 +34,7 @@ The following rights are required for deploying traffic-shadowing stack.
                 "cloudformation:DescribeStackEvents",
                 "lambda:AddPermission",
                 "cloudformation:CreateStack",
+                "cloudformation:UpdateStack",
                 "iam:DeleteRolePolicy",
                 "cloudformation:DeleteStack",
                 "lambda:DeleteFunction",
@@ -103,4 +104,4 @@ shadowing.deploy()
 
 Once you've enabled data capturing on your AWS Sagemaker Endpoint, you can deploy TrafficShadowing CloudFormation stack, which contains AWS Lambda function responsible for shadowing traffic from configured S3 bucket to Hydrosphere for analysis.
 
-**Note**, by default `destination_s3_uri` parameter, specified in the `DataCaptureConfig`, represents a prefix where your requests will be stored. In the example above, we've deployed a model with the endpoint name `model-shadowing-example`. This means that all requests collected from that model endpoint will be placed under `s3://bucket/data/captured/model-shadowing-example` path. Lambda function, deployed as part of the `TrafficShadowing` stack, expects that training data is organized in the same way, i.e., data used for training the `model-shadowing-example` model is placed under `s3://bucket/data/training/model-shadowing-example` path. Lambda function then finds the biggest `.csv` file under that directory and uploads it to the Hydrosphere platform for building profiles for your model.
+**Note**, by default `destination_s3_uri` parameter, specified in the `DataCaptureConfig`, represents a prefix where your requests will be stored. In the example above, we've deployed a model with the endpoint name `model-shadowing-example`. This means that all requests collected from that model endpoint will be placed under `s3://bucket/data/captured/model-shadowing-example` path. The Lambda function, deployed as part of the `TrafficShadowing` stack, expects that training data is organized in the same way, i.e., data used for training the `model-shadowing-example` model is placed under `s3://bucket/data/training/model-shadowing-example` path. Lambda function then finds the biggest `.csv` file under that directory and uploads it to the Hydrosphere platform for building profiles for your model.
