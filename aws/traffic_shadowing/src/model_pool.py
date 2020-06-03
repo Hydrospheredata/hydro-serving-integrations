@@ -126,7 +126,6 @@ class ModelPool:
     def _wait_for_data_processing(
             self,
             model_version_id,
-            timeout: int = 120,
             retry: int = 3
     ) -> requests.Response:
         """Wait till the data gets registered or finishes the processing."""
