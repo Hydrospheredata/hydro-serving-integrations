@@ -22,7 +22,3 @@ class ModelRegistrationFailed(Exception):
 
 class DataUploadFailed(Exception):
     pass
-
-
-class TimeOut(Exception):
-    pass

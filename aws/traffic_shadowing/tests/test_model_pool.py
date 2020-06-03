@@ -3,7 +3,7 @@ import pytest
 import requests_mock
 from src.model_pool import ModelPool
 from src.errors import (
-    ModelNotFound, DataUploadFailed, TimeOut, ApiNotAvailable
+    ModelNotFound, DataUploadFailed, ApiNotAvailable
 )
 from tests.stubs.http.hydrosphere import (
     ListModelsStub, ListModelVersionsStub, RegisterExternalModelStub,
@@ -106,17 +106,6 @@ def test_wait_training_data_processed():
         assert result.status_code == 200
 
 
-def test_wait_training_data_processed_timeout():
-    with requests_mock.mock(real_http=False) as mock:
-        mock.get(**WaitTrainingDataProcessingStub(
-            kind="Processing",
-            model_version_id=MODEL_VERSION_ID,
-        ).generate_response())
-        with pytest.raises(TimeOut):
-            pool = ModelPool(HYDROSPHERE_ENDPOINT)
-            pool._wait_for_data_processing(MODEL_VERSION_ID, timeout=1, retry=0)
-
-
 def test_wait_training_data_processed_fail():
     with requests_mock.mock(real_http=False) as mock:
         mock.get(**WaitTrainingDataProcessingStub(
@@ -125,7 +114,7 @@ def test_wait_training_data_processed_fail():
         ).generate_response())
         with pytest.raises(DataUploadFailed):
             pool = ModelPool(HYDROSPHERE_ENDPOINT)
-            pool._wait_for_data_processing(MODEL_VERSION_ID, timeout=1, retry=0)
+            pool._wait_for_data_processing(MODEL_VERSION_ID, retry=0)
 
 
 def test_wait_training_data_processed_not_registered():
@@ -136,7 +125,7 @@ def test_wait_training_data_processed_not_registered():
         ).generate_response())
         with pytest.raises(DataUploadFailed):
             pool = ModelPool(HYDROSPHERE_ENDPOINT)
-            pool._wait_for_data_processing(MODEL_VERSION_ID, timeout=1, retry=0)
+            pool._wait_for_data_processing(MODEL_VERSION_ID, retry=0)
 
 
 def test_wait_training_data_processed_unavailable():
@@ -147,7 +136,7 @@ def test_wait_training_data_processed_unavailable():
         ).generate_client_error())
         with pytest.raises(ApiNotAvailable):
             pool = ModelPool(HYDROSPHERE_ENDPOINT)
-            pool._wait_for_data_processing(MODEL_VERSION_ID, timeout=1, retry=0)
+            pool._wait_for_data_processing(MODEL_VERSION_ID, retry=0)
 
 
 def test_create_model():

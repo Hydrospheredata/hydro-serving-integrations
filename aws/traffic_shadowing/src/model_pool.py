@@ -111,14 +111,13 @@ class ModelPool:
             metadata: dict = None
     ) -> Model:
         """
-        Register an external model in the Hydrosphere platform
-        and uploads training data.
+        Register an external model and send training data.
         """
-        registration_response = self._register_model(name, schema, metadata)
+        response = self._register_model(name, schema, metadata)
         model = Model(
-            name=registration_response["model"]["name"],
-            version=registration_response["modelVersion"],
-            model_version_id=registration_response["id"]
+            name=response["model"]["name"],
+            version=response["modelVersion"],
+            model_version_id=response["id"]
         )
         self._upload_training_data(model.model_version_id, training_file)
         self._wait_for_data_processing(model.model_version_id)
@@ -127,20 +126,25 @@ class ModelPool:
     def _wait_for_data_processing(
             self,
             model_version_id,
-            timeout: int = 120,
             retry: int = 3
     ) -> requests.Response:
-        """Wait till the data gets processed."""
+        """Wait till the data gets registered or finishes the processing."""
+
+        def tick(sleep: int = 5) -> bool:
+            nonlocal retry
+            if retry == 0: 
+                return False
+            retry -= 1
+            time.sleep(sleep)
+            return True
+
         url = urllib.parse.urljoin(
             self.endpoint, f"/monitoring/profiles/batch/{model_version_id}/status")
-
         result = None
         while True:
             result = requests.get(url)
             if result.status_code != 200:
-                if retry > 0:
-                    retry -= 1
-                    time.sleep(5)
+                if tick(): 
                     continue
                 else:
                     raise errors.ApiNotAvailable(
@@ -148,18 +152,15 @@ class ModelPool:
 
             body = result.json()
             status = DataProfileStatus[body["kind"]]
-            if status == DataProfileStatus.Processing:
-                if timeout > 0:
-                    seconds = min(10, timeout)
-                    timeout -= seconds
-                    time.sleep(seconds)
+
+            if status in (DataProfileStatus.Success, DataProfileStatus.Processing): 
+                # Don't wait until all data gets processed, release immediately
+                break 
+            elif status == DataProfileStatus.NotRegistered:
+                # If profile hasn't been registered yet, wait for a little more
+                if tick(): 
                     continue
-                else:
-                    raise errors.TimeOut("Data processing timed out.")
-            elif status == DataProfileStatus.Success:
-                break
-            else:
-                raise errors.DataUploadFailed(f"Failed to upload the data: {status}")
+            raise errors.DataUploadFailed(f"Failed to upload the data: {status}")
         return result
 
     def _upload_training_data(self, model_version_id: int, training_file: str) -> requests.Response:
@@ -189,8 +190,7 @@ class ModelPool:
             response = result.json()
             self.logger.info("Registered a new model: %s", response["model"]["name"])
         else:
-            raise errors.ModelRegistrationFailed(
-                f"Could not register a model: {result.content}")
+            raise errors.ModelRegistrationFailed(f"Could not register a model: {result.content}")
         return response
 
     def _create_feature(self, column: ColumnDescription) -> dict:
